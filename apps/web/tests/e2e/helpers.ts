@@ -6,10 +6,18 @@ export async function login(page: Page, email = ADMIN.email, password = ADMIN.pa
   await page.goto("/login");
   await page.evaluate(() => localStorage.setItem("satops.locale", "en"));
   await page.reload();
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await page.waitForURL((url) => !url.pathname.startsWith("/login"));
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password").fill(password);
+    await page.getByRole("button", { name: "Sign in" }).click();
+    const limited = page.getByText("Too many attempts");
+    const outcome = await Promise.race([
+      page.waitForURL((url) => !url.pathname.startsWith("/login")).then(() => "ok"),
+      limited.waitFor().then(() => "limited"),
+    ]);
+    if (outcome === "ok") break;
+    await page.waitForTimeout(61_000);
+  }
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Financial overview" })).toBeVisible();
 }
