@@ -1,0 +1,60 @@
+name: satops-dev
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports: ["127.0.0.1:5435:5432"]
+    volumes: [dev-postgres:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      retries: 30
+
+  bitcoin-0:
+    image: bitcoin/bitcoin:29.0
+    entrypoint: ["/satops-entrypoint.sh"]
+    environment:
+      BITCOIN_RPC_USER: satops
+      BITCOIN_RPC_PASSWORD: satops-dev
+      BITCOIN_PEERS: bitcoin-1:18444
+    volumes: ["./deploy/docker/bitcoin/entrypoint.sh:/satops-entrypoint.sh:ro"]
+    ports: ["127.0.0.1:18443:18443", "127.0.0.1:28332:28332"]
+
+  bitcoin-1:
+    image: bitcoin/bitcoin:29.0
+    entrypoint: ["/satops-entrypoint.sh"]
+    environment:
+      BITCOIN_RPC_USER: satops
+      BITCOIN_RPC_PASSWORD: satops-dev
+      BITCOIN_PEERS: bitcoin-0:18444
+    volumes: ["./deploy/docker/bitcoin/entrypoint.sh:/satops-entrypoint.sh:ro"]
+    ports: ["127.0.0.1:18453:18443", "127.0.0.1:28342:28332"]
+
+  toolbox:
+    build: { context: ., dockerfile: deploy/docker/api.Dockerfile, target: dev }
+    image: satops-api:dev
+    profiles: [tools]
+    working_dir: /repo/apps/api
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    environment:
+      HOME: /tmp/home
+      MIX_HOME: /opt/mix
+      HEX_HOME: /opt/hex
+      DATABASE_URL: ecto://postgres:postgres@postgres:5432/satops_dev
+      TEST_DATABASE_URL: ecto://postgres:postgres@postgres:5432/satops_test
+      BITCOIN_TEST_RPC_URL: http://bitcoin-0:18443
+      BITCOIN_TEST_RPC_URL_2: http://bitcoin-1:18443
+      BITCOIN_TEST_ZMQ: tcp://bitcoin-0:28332
+      BITCOIN_TEST_RPC_USER: satops
+      BITCOIN_TEST_RPC_PASSWORD: satops-dev
+    volumes:
+      - .:/repo
+      - dev-hex:/tmp/home
+    depends_on:
+      postgres: { condition: service_healthy }
+
+volumes:
+  dev-postgres:
+  dev-hex:

@@ -1,0 +1,9 @@
+{
+  "name": "@satops/config-schemas",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": ["schemas", "index.js", "index.d.ts"]
+}

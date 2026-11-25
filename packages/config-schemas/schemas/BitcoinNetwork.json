@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://satops.io/schemas/v1alpha1/BitcoinNetwork.json",
+  "title": "Bitcoin network",
+  "description": "Regtest network topology and reference chain selection policy.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "satops.io/v1alpha1"
+    },
+    "kind": {
+      "const": "BitcoinNetwork"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9]([a-z0-9-]{0,48}[a-z0-9])?$",
+          "description": "Lowercase identifier"
+        },
+        "labels": {
+          "type": "object",
+          "maxProperties": 20,
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 63
+          }
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "environmentRef",
+        "type"
+      ],
+      "properties": {
+        "environmentRef": {
+          "type": "string",
+          "pattern": "^[a-z0-9]([a-z0-9-]{0,48}[a-z0-9])?$",
+          "description": "Environment slug"
+        },
+        "type": {
+          "const": "regtest"
+        },
+        "referencePolicy": {
+          "enum": [
+            "mostWork"
+          ],
+          "default": "mostWork"
+        },
+        "nodes": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "integrationRef"
+            ],
+            "properties": {
+              "integrationRef": {
+                "type": "string",
+                "pattern": "^[a-z0-9]([a-z0-9-]{0,48}[a-z0-9])?$",
+                "description": "Lowercase identifier"
+              },
+              "priority": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://satops.io/schemas/v1alpha1/Dashboard.json",
+  "title": "Dashboard",
+  "description": "Configurable dashboard composed from registered widget types.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "satops.io/v1alpha1"
+    },
+    "kind": {
+      "const": "Dashboard"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9]([a-z0-9-]{0,48}[a-z0-9])?$",
+          "description": "Lowercase identifier"
+        },
+        "labels": {
+          "type": "object",
+          "maxProperties": 20,
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 63
+          }
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workspace",
+        "widgets"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "workspace": {
+          "enum": [
+            "customer",
+            "engineering"
+          ]
+        },
+        "layout": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "columns": {
+              "const": 12
+            }
+          }
+        },
+        "widgets": {
+          "type": "array",
+          "maxItems": 40,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "type",
+              "position"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,62}$"
+              },
+              "type": {
+                "enum": [
+                  "transactions.volume",
+                  "balance.confirmed",
+                  "balance.pending",
+                  "blockchain.nodes",
+                  "blockchain.height",
+                  "blockchain.mempool",
+                  "transactions.recent",
+                  "reconciliation.summary",
+                  "reconciliation.open_discrepancies",
+                  "reconciliation.history",
+                  "experiments.results",
+                  "experiments.active",
+                  "jobs.status",
+                  "ingestion.latency",
+                  "blockchain.reorganizations"
+                ]
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "position": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "x",
+                  "y",
+                  "width",
+                  "height"
+                ],
+                "properties": {
+                  "x": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 11
+                  },
+                  "y": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 200
+                  },
+                  "width": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 12
+                  },
+                  "height": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 12
+                  }
+                }
+              },
+              "refreshInterval": {
+                "type": "string",
+                "pattern": "^[0-9]+(ms|s|m)$",
+                "description": "Duration such as 500ms, 30s or 5m"
+              },
+              "config": {
+                "type": "object",
+                "maxProperties": 10,
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

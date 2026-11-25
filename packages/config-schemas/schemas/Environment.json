@@ -1,0 +1,202 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://satops.io/schemas/v1alpha1/Environment.json",
+  "title": "Environment",
+  "description": "Sandbox environment with an isolated regtest network.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "satops.io/v1alpha1"
+    },
+    "kind": {
+      "const": "Environment"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9]([a-z0-9-]{0,48}[a-z0-9])?$",
+          "description": "Lowercase identifier"
+        },
+        "labels": {
+          "type": "object",
+          "maxProperties": 20,
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 63
+          }
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "network"
+      ],
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "kind": {
+          "enum": [
+            "persistent",
+            "ephemeral"
+          ],
+          "default": "persistent"
+        },
+        "network": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "regtest"
+            },
+            "nodes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5,
+              "default": 2
+            }
+          }
+        },
+        "modules": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "satwatch": {
+              "type": "boolean"
+            },
+            "clearledger": {
+              "type": "boolean"
+            },
+            "satlab": {
+              "type": "boolean"
+            }
+          }
+        },
+        "ledger": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "asset": {
+              "const": "BTC"
+            },
+            "confirmationPolicy": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredConfirmations": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                }
+              }
+            }
+          }
+        },
+        "reconciliation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "interval": {
+              "type": "string",
+              "pattern": "^[0-9]+(ms|s|m)$",
+              "description": "Duration such as 500ms, 30s or 5m"
+            },
+            "autoCorrect": {
+              "const": false
+            }
+          }
+        },
+        "demoFintech": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "syntheticCustomers": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000
+            }
+          }
+        },
+        "experiments": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "maxConcurrent": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10
+            },
+            "cleanupPolicy": {
+              "enum": [
+                "onCompletion",
+                "onSuccess",
+                "never"
+              ]
+            }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "cpuLimit": {
+              "type": "string",
+              "pattern": "^[0-9]+(m|\\.[0-9]+)?$"
+            },
+            "memoryLimit": {
+              "type": "string",
+              "pattern": "^[0-9]+(Mi|Gi)$"
+            }
+          }
+        },
+        "safety": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "allowMainnet": {
+              "const": false
+            },
+            "allowPublicPeers": {
+              "const": false
+            },
+            "requireIsolatedNamespace": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    }
+  }
+}

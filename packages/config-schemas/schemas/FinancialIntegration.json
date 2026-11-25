@@ -1,0 +1,165 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://satops.io/schemas/v1alpha1/FinancialIntegration.json",
+  "title": "Financial integration",
+  "description": "External financial application, file source or webhook endpoint.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "satops.io/v1alpha1"
+    },
+    "kind": {
+      "const": "FinancialIntegration"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9]([a-z0-9-]{0,48}[a-z0-9])?$",
+          "description": "Lowercase identifier"
+        },
+        "labels": {
+          "type": "object",
+          "maxProperties": 20,
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 63
+          }
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "environmentRef",
+        "type"
+      ],
+      "properties": {
+        "environmentRef": {
+          "type": "string",
+          "pattern": "^[a-z0-9]([a-z0-9-]{0,48}[a-z0-9])?$",
+          "description": "Environment slug"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "type": {
+          "enum": [
+            "demo_fintech",
+            "generic_rest",
+            "csv_import",
+            "webhook_receiver",
+            "webhook_destination"
+          ]
+        },
+        "secretRef": {
+          "type": "string",
+          "pattern": "^[a-z0-9]([a-z0-9-]{0,48}[a-z0-9])?$",
+          "description": "Lowercase identifier"
+        },
+        "connection": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "baseUrl": {
+              "type": "string",
+              "format": "uri",
+              "maxLength": 500
+            },
+            "url": {
+              "type": "string",
+              "format": "uri",
+              "maxLength": 500
+            },
+            "timeout": {
+              "type": "string",
+              "pattern": "^[0-9]+(ms|s|m)$",
+              "description": "Duration such as 500ms, 30s or 5m"
+            }
+          }
+        },
+        "webhook": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "secretRef": {
+              "type": "string",
+              "pattern": "^[a-z0-9]([a-z0-9-]{0,48}[a-z0-9])?$",
+              "description": "Lowercase identifier"
+            },
+            "toleranceSeconds": {
+              "type": "integer",
+              "minimum": 30,
+              "maximum": 3600
+            }
+          }
+        },
+        "mapping": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "recordsPath": {
+              "type": "string",
+              "pattern": "^/"
+            },
+            "balancesPath": {
+              "type": "string",
+              "pattern": "^/"
+            },
+            "recordsKey": {
+              "type": "string"
+            },
+            "fields": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "propertyNames": {
+                "enum": [
+                  "source_record_id",
+                  "kind",
+                  "account_ref",
+                  "asset",
+                  "amount_sats",
+                  "txid",
+                  "vout",
+                  "status",
+                  "occurred_at"
+                ]
+              }
+            }
+          }
+        },
+        "retry": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "maxAttempts": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            }
+          }
+        }
+      }
+    }
+  }
+}

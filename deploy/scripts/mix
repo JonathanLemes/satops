@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+export HOST_UID="$(id -u)" HOST_GID="$(id -g)"
+exec docker compose -f "$ROOT/docker-compose.dev.yml" --project-directory "$ROOT" run --rm -T toolbox mix "$@"

@@ -1,0 +1,171 @@
+name: satops
+
+x-api-env: &api-env
+  DATABASE_URL: ecto://satops:${SATOPS_DB_PASSWORD:?}@postgres:5432/satops
+  SECRET_KEY_BASE: ${SECRET_KEY_BASE:?}
+  SATOPS_SECRET_KEY: ${SATOPS_SECRET_KEY:?}
+  SATOPS_COOKIE_SECURE: ${SATOPS_COOKIE_SECURE:-false}
+  SATOPS_ROLE: all
+  SATOPS_RUNTIME: local
+  SATOPS_ALLOWED_INTEGRATION_HOSTS: bitcoin-0,bitcoin-1,demo-fintech
+  SATOPS_BOOTSTRAP_SECRETS: >-
+    bitcoin-rpc=${BITCOIN_RPC_USER:?}:${BITCOIN_RPC_PASSWORD:?};demo-fintech-token=${DEMO_FINTECH_API_TOKEN:?};demo-fintech-webhook=${DEMO_FINTECH_WEBHOOK_SECRET:?}
+  PHX_HOST: ${SATOPS_PUBLIC_HOST:-localhost}
+  PORT: "4000"
+  POOL_SIZE: "15"
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      SATOPS_DB_PASSWORD: ${SATOPS_DB_PASSWORD:?}
+      DEMO_FINTECH_DB_PASSWORD: ${DEMO_FINTECH_DB_PASSWORD:?}
+      SATOPS_CREATE_TEST_DB: ${SATOPS_CREATE_TEST_DB:-false}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./deploy/docker/postgres/init.sh:/docker-entrypoint-initdb.d/10-init.sh:ro
+    networks: [data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    deploy:
+      resources:
+        limits: { cpus: "2", memory: 1536M }
+
+  bitcoin-0:
+    image: bitcoin/bitcoin:29.0
+    restart: unless-stopped
+    entrypoint: ["/satops-entrypoint.sh"]
+    environment:
+      BITCOIN_RPC_USER: ${BITCOIN_RPC_USER:?}
+      BITCOIN_RPC_PASSWORD: ${BITCOIN_RPC_PASSWORD:?}
+      BITCOIN_PEERS: bitcoin-1:18444
+    volumes:
+      - ./deploy/docker/bitcoin/entrypoint.sh:/satops-entrypoint.sh:ro
+      - bitcoin-0-data:/home/bitcoin/.bitcoin
+    networks: [sandbox]
+    deploy:
+      resources:
+        limits: { cpus: "1", memory: 512M }
+
+  bitcoin-1:
+    image: bitcoin/bitcoin:29.0
+    restart: unless-stopped
+    entrypoint: ["/satops-entrypoint.sh"]
+    environment:
+      BITCOIN_RPC_USER: ${BITCOIN_RPC_USER:?}
+      BITCOIN_RPC_PASSWORD: ${BITCOIN_RPC_PASSWORD:?}
+      BITCOIN_PEERS: bitcoin-0:18444
+    volumes:
+      - ./deploy/docker/bitcoin/entrypoint.sh:/satops-entrypoint.sh:ro
+      - bitcoin-1-data:/home/bitcoin/.bitcoin
+    networks: [sandbox]
+    deploy:
+      resources:
+        limits: { cpus: "1", memory: 512M }
+
+  migrate:
+    build: { context: ., dockerfile: deploy/docker/api.Dockerfile, target: runtime }
+    image: satops-api:local
+    environment: *api-env
+    command: ["/app/bin/sat_ops", "eval", "SatOps.Release.migrate()"]
+    networks: [data]
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: "no"
+
+  api:
+    image: satops-api:local
+    restart: unless-stopped
+    environment: *api-env
+    networks: [data, sandbox, edge]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      bitcoin-0: { condition: service_started }
+      bitcoin-1: { condition: service_started }
+    deploy:
+      resources:
+        limits: { cpus: "2", memory: 1G }
+
+  demo-fintech:
+    build: { context: examples/demo-fintech }
+    image: satops-demo-fintech:local
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://demo_fintech:${DEMO_FINTECH_DB_PASSWORD:?}@postgres:5432/demo_fintech
+      BITCOIN_RPC_URL: http://bitcoin-0:18443
+      BITCOIN_RPC_USER: ${BITCOIN_RPC_USER:?}
+      BITCOIN_RPC_PASSWORD: ${BITCOIN_RPC_PASSWORD:?}
+      API_TOKEN: ${DEMO_FINTECH_API_TOKEN:?}
+      WEBHOOK_URL: http://api:4000/api/webhooks/demo-fintech
+      WEBHOOK_SECRET: ${DEMO_FINTECH_WEBHOOK_SECRET:?}
+      REQUIRED_CONFIRMATIONS: "3"
+      FAULT_MODES_ALLOWED: "true"
+      PORT: "8080"
+    networks: [data, sandbox]
+    depends_on:
+      postgres: { condition: service_healthy }
+      bitcoin-0: { condition: service_started }
+    deploy:
+      resources:
+        limits: { cpus: "1", memory: 384M }
+
+  web:
+    build: { context: ., dockerfile: deploy/docker/web.Dockerfile }
+    image: satops-web:local
+    restart: unless-stopped
+    ports:
+      - "${SATOPS_BIND_ADDRESS:-127.0.0.1}:${SATOPS_HTTP_PORT:-8470}:8080"
+    networks: [edge]
+    depends_on: [api]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 128M }
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    profiles: [observability]
+    restart: unless-stopped
+    volumes:
+      - ./deploy/docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks: [edge]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 512M }
+
+  grafana:
+    image: grafana/grafana:12.1.0
+    profiles: [observability]
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    ports:
+      - "${SATOPS_BIND_ADDRESS:-127.0.0.1}:${SATOPS_GRAFANA_PORT:-8471}:3000"
+    volumes:
+      - ./deploy/docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    networks: [edge]
+    depends_on: [prometheus]
+
+networks:
+  data:
+    internal: true
+  sandbox:
+    internal: true
+  edge: {}
+
+volumes:
+  postgres-data:
+  bitcoin-0-data:
+  bitcoin-1-data:
+  prometheus-data:
+  grafana-data:
