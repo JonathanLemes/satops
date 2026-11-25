@@ -110,6 +110,51 @@ defmodule SatOpsWeb.ApiTest do
     assert r["data"]["saveDashboard"]["id"]
   end
 
+  test "engineering queries backed by schemaless tables serialize timestamps", %{conn: conn} do
+    env = environment()
+
+    SatOps.Repo.query!(
+      "INSERT INTO chain_checkpoints (environment_id, tip_hash, tip_height, updated_at) VALUES ($1, 'aa', 1, now())",
+      [Ecto.UUID.dump!(env.id)]
+    )
+
+    SatOps.Repo.query!(
+      "INSERT INTO consumer_checkpoints (consumer, last_seq) VALUES ('ledger.chain', 0) ON CONFLICT DO NOTHING"
+    )
+
+    {:ok, integration} =
+      SatOps.Integrations.create(%{environment_id: env.id, name: "csv", kind: "csv_import", config: %{}}, nil)
+
+    SatOps.Integrations.record_health(integration, {:error, "boom"})
+
+    query = """
+    query($e: ID!) {
+      chainOverview(environmentId: $e) { checkpointHeight checkpointUpdatedAt reorganizations { id } }
+      eventConsumers { consumer updatedAt }
+      jobs(limit: 5) { id insertedAt }
+      jobStats { queue count }
+      integrations(environmentId: $e) { name errors { message occurredAt } }
+    }
+    """
+
+    r = gql(login(conn, user()), query, %{"e" => env.id})
+    refute r["errors"]
+    assert r["data"]["chainOverview"]["checkpointUpdatedAt"]
+    assert [%{"errors" => [%{"occurredAt" => at}]}] = r["data"]["integrations"]
+    assert is_binary(at)
+  end
+
+  test "socket tokens authenticate only live sessions" do
+    u = user()
+    {_token, session} = SatOps.Identity.create_session(u)
+    socket_token = SatOps.Identity.socket_token(session)
+    assert {:ok, %{user: %{id: id}}} = SatOps.Identity.fetch_socket_session(socket_token)
+    assert id == u.id
+    SatOps.Identity.delete_session(session)
+    assert {:error, :invalid_session} = SatOps.Identity.fetch_socket_session(socket_token)
+    assert {:error, :invalid_session} = SatOps.Identity.fetch_socket_session("forged")
+  end
+
   test "webhooks require a valid signature and are deduplicated", %{conn: conn} do
     env = environment()
     :ok = SatOps.Secrets.put(env.id, "hook-secret", "s3cret")

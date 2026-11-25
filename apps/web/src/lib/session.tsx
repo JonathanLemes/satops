@@ -12,6 +12,7 @@ export interface SessionEnvironment {
 export interface Me {
   user: { id: string; email: string; name: string; role: string; locale: string };
   csrfToken: string;
+  socketToken: string;
   permissions: string[];
   environments: SessionEnvironment[];
 }

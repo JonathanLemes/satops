@@ -100,6 +100,21 @@ defmodule SatOps.Identity do
 
   def fetch_session(_), do: {:error, :invalid_session}
 
+  def socket_token(%Session{id: id}), do: Phoenix.Token.sign(SatOpsWeb.Endpoint, "user socket", id)
+
+  def fetch_socket_session(token) when is_binary(token) do
+    with {:ok, id} <- Phoenix.Token.verify(SatOpsWeb.Endpoint, "user socket", token, max_age: 12 * 3600),
+         %Session{} = session <-
+           Repo.one(from s in Session, where: s.id == ^id and s.expires_at > ^DateTime.utc_now(), preload: :user),
+         nil <- session.user.disabled_at do
+      {:ok, session}
+    else
+      _ -> {:error, :invalid_session}
+    end
+  end
+
+  def fetch_socket_session(_), do: {:error, :invalid_session}
+
   def delete_session(%Session{id: id}), do: Repo.delete_all(from s in Session, where: s.id == ^id)
 
   def purge_expired_sessions do

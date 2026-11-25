@@ -43,7 +43,15 @@ interface RealtimeValue {
 
 const RealtimeContext = createContext<RealtimeValue>({ connected: false, subscribe: () => () => {} });
 
-export function RealtimeProvider({ environmentId, children }: { environmentId: string | null; children: ReactNode }) {
+export function RealtimeProvider({
+  environmentId,
+  token,
+  children,
+}: {
+  environmentId: string | null;
+  token: string | null;
+  children: ReactNode;
+}) {
   const client = useApolloClient();
   const [connected, setConnected] = useState(false);
   const listeners = useRef(new Set<Listener>());
@@ -51,8 +59,11 @@ export function RealtimeProvider({ environmentId, children }: { environmentId: s
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!environmentId) return;
-    const socket = new Socket("/socket", { reconnectAfterMs: (tries: number) => Math.min(1000 * 2 ** tries, 30_000) });
+    if (!environmentId || !token) return;
+    const socket = new Socket("/socket", {
+      params: { token },
+      reconnectAfterMs: (tries: number) => Math.min(1000 * 2 ** tries, 30_000),
+    });
     let channel: Channel | null = null;
     let wasDisconnected = false;
 
@@ -87,7 +98,7 @@ export function RealtimeProvider({ environmentId, children }: { environmentId: s
       socket.disconnect();
       if (timer.current) clearTimeout(timer.current);
     };
-  }, [environmentId, client]);
+  }, [environmentId, token, client]);
 
   const value = useRef<RealtimeValue>({
     connected: false,

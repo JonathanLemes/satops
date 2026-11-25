@@ -132,7 +132,7 @@ defmodule SatOps.Blockchain do
           last_sequence: z.last_sequence,
           gaps_total: z.gaps_total,
           duplicates_total: z.duplicates_total,
-          updated_at: z.updated_at
+          updated_at: type(z.updated_at, :utc_datetime_usec)
         }
     )
   end
@@ -141,7 +141,7 @@ defmodule SatOps.Blockchain do
     Repo.one(
       from c in "chain_checkpoints",
         where: c.environment_id == type(^environment_id, :binary_id),
-        select: %{tip_hash: c.tip_hash, tip_height: c.tip_height, updated_at: c.updated_at}
+        select: %{tip_hash: c.tip_hash, tip_height: c.tip_height, updated_at: type(c.updated_at, :utc_datetime_usec)}
     )
   end
 

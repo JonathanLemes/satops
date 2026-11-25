@@ -1,17 +1,5 @@
 import { useQuery } from "@apollo/client/react";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Link } from "react-router";
 import { useI18n } from "@/i18n";
 import { useEnvironmentId, useSession } from "@/lib/session";
@@ -170,35 +158,80 @@ export function RecentTransactionsWidget({ title, refreshMs }: WidgetProps) {
   );
 }
 
+export function hourlySeries(
+  buckets: { bucket: string; count: number; valueSats: number }[],
+  now = Date.now(),
+  hours = 24,
+) {
+  const byHour = new Map(buckets.map((b) => [Math.floor(new Date(b.bucket).getTime() / 3_600_000), b]));
+  const current = Math.floor(now / 3_600_000);
+  return Array.from({ length: hours }, (_, i) => {
+    const hour = current - hours + 1 + i;
+    const b = byHour.get(hour);
+    return { hour: hour * 3_600_000, count: b?.count ?? 0, valueSats: b?.valueSats ?? 0 };
+  });
+}
+
 export function VolumeWidget({ title, refreshMs }: WidgetProps) {
   const environmentId = useEnvironmentId();
   const { locale, t } = useI18n();
   const { data } = useQuery(WIDGET_VOLUME, { variables: { environmentId }, pollInterval: refreshMs ?? 60_000 });
-  const points = (data?.transactionVolume ?? []).map((b) => ({
-    time: formatTime(b.bucket, locale).slice(0, 5),
-    count: b.count,
-  }));
+  const series = hourlySeries(data?.transactionVolume ?? []);
+  const totalCount = series.reduce((sum, p) => sum + p.count, 0);
+  const totalValue = series.reduce((sum, p) => sum + p.valueSats, 0);
+  const hourLabel = (ms: number) =>
+    new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" }).format(new Date(ms));
   return (
-    <Frame title={title} action={<span className="text-[11px] text-text-muted">{t("widgets.hours24")}</span>}>
-      <div className="h-full min-h-[140px]">
+    <Frame
+      title={title}
+      action={
+        <span className="text-[11px] text-text-muted">
+          {formatNumber(totalCount, locale)} tx · <Sats value={totalValue} /> · {t("widgets.hours24")}
+        </span>
+      }
+    >
+      <div className="h-full min-h-[120px]">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={points} margin={{ top: 8, right: 4, left: -24, bottom: 0 }}>
+          <AreaChart data={series} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="volume-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0} />
+              </linearGradient>
+            </defs>
             <CartesianGrid stroke="var(--border)" vertical={false} />
             <XAxis
-              dataKey="time"
+              dataKey="hour"
+              tickFormatter={hourLabel}
               tick={{ fontSize: 11, fill: "var(--text-muted)" }}
               tickLine={false}
               axisLine={false}
+              minTickGap={32}
             />
             <YAxis
               allowDecimals={false}
               tick={{ fontSize: 11, fill: "var(--text-muted)" }}
               tickLine={false}
               axisLine={false}
+              width={36}
             />
-            <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "var(--surface-2)" }} />
-            <Bar dataKey="count" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
-          </BarChart>
+            <Tooltip
+              contentStyle={tooltipStyle}
+              labelFormatter={(v) => hourLabel(Number(v))}
+              formatter={(value, name) =>
+                name === "count" ? [formatNumber(Number(value), locale), t("transactions.title")] : [value, name]
+              }
+            />
+            <Area
+              type="monotone"
+              dataKey="count"
+              stroke="var(--chart-1)"
+              strokeWidth={2}
+              fill="url(#volume-fill)"
+              dot={false}
+              activeDot={{ r: 3 }}
+            />
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </Frame>

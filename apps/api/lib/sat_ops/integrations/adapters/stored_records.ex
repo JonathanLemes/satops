@@ -16,8 +16,8 @@ defmodule SatOps.Integrations.Adapters.StoredRecords do
             txid: r.txid,
             vout: r.vout,
             status: r.status,
-            occurred_at: r.occurred_at,
-            updated_at: r.updated_at
+            occurred_at: type(r.occurred_at, :utc_datetime_usec),
+            updated_at: type(r.updated_at, :utc_datetime_usec)
           }
       )
 

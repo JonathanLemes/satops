@@ -79,7 +79,8 @@ defmodule SatOps.Events do
 
   def checkpoints do
     Repo.all(
-      from c in "consumer_checkpoints", select: %{consumer: c.consumer, last_seq: c.last_seq, updated_at: c.updated_at}
+      from c in "consumer_checkpoints",
+        select: %{consumer: c.consumer, last_seq: c.last_seq, updated_at: type(c.updated_at, :utc_datetime_usec)}
     )
   end
 

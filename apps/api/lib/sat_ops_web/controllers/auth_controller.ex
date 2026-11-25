@@ -47,6 +47,7 @@ defmodule SatOpsWeb.AuthController do
     %{
       user: %{id: user.id, email: user.email, name: user.name, role: user.role, locale: user.locale},
       csrfToken: session.csrf_token,
+      socketToken: Identity.socket_token(session),
       permissions: Identity.permissions(user),
       environments:
         Enum.map(envs, fn e ->

@@ -182,7 +182,7 @@ defmodule SatOps.Integrations do
         where: e.integration_id == type(^integration_id, :binary_id),
         order_by: [desc: e.id],
         limit: ^limit,
-        select: %{message: e.message, occurred_at: e.occurred_at}
+        select: %{message: e.message, occurred_at: type(e.occurred_at, :utc_datetime_usec)}
     )
   end
 

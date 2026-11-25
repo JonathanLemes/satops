@@ -2,7 +2,7 @@ defmodule SatOpsWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :sat_ops
 
   socket "/socket", SatOpsWeb.UserSocket,
-    websocket: [connect_info: [:peer_data, cookies: ["satops_session"]], check_origin: false],
+    websocket: [connect_info: [:peer_data], check_origin: false],
     longpoll: false
 
   if code_reloading? do
