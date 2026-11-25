@@ -1,0 +1,13 @@
+{
+  "name": "satops",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --filter @satops/web dev",
+    "build:web": "pnpm --filter @satops/web build",
+    "test:web": "pnpm --filter @satops/web test",
+    "test:fintech": "pnpm --filter @satops/demo-fintech test",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "codegen": "pnpm --filter @satops/graphql-types codegen"
+  }
+}

@@ -1,6 +1,6 @@
 defmodule SatOps.Reconciliation.Engine do
   @credited ~w(credited completed confirmed settled)
-  @pending ~w(pending detected processing reserved)
+  @pending ~w(pending detected processing reserved broadcast)
   @invalid_chain ~w(unconfirmed conflicted replaced unknown)
 
   def run(chain_facts, sources, policy) do
