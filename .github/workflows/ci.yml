@@ -24,8 +24,17 @@ jobs:
     defaults:
       run:
         working-directory: apps/api
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 20
     env:
       MIX_ENV: test
+      TEST_DATABASE_URL: ecto://postgres:postgres@localhost:5432/satops_test
     steps:
       - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
@@ -143,7 +152,7 @@ jobs:
       - name: Build images
         run: docker compose build
       - name: Scan images
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: fs
           scan-ref: .
