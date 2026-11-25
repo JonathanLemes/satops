@@ -1,0 +1,797 @@
+schema {
+  mutation: RootMutationType
+  query: RootQueryType
+}
+
+type RootQueryType {
+  environments: [Environment!]!
+  environment(id: ID!): Environment
+  integrations(environmentId: ID!, kind: String): [Integration!]!
+  integration(id: ID!): Integration
+  integrationKinds: [String!]!
+  secretNames(environmentId: ID!): [String!]!
+  auditLog(environmentId: ID, action: String, resourceId: String, correlationId: ID, beforeId: Int, limit: Int): [AuditEntry!]!
+  events(environmentId: ID!, types: [String!], aggregateId: String, correlationId: ID, beforeSeq: Int, limit: Int): [DomainEvent!]!
+  eventConsumers: [ConsumerCheckpoint!]!
+  jobStats: [JobStat!]!
+  jobs(state: String, queue: String, limit: Int): [Job!]!
+  users: [User!]!
+  nodes(environmentId: ID!): [NodeStatus!]!
+  chainOverview(environmentId: ID!): ChainOverview!
+  blocks(environmentId: ID!, beforeHeight: Int, limit: Int, includeStale: Boolean): [Block!]!
+  transactions(environmentId: ID!, filter: TransactionFilter, first: Int, after: String): TransactionConnection!
+  transaction(environmentId: ID!, txid: String!): Transaction
+  transactionVolume(environmentId: ID!, hours: Int): [VolumeBucket!]!
+  wallets(environmentId: ID!): [Wallet!]!
+  portfolio(environmentId: ID!, walletIds: [ID!]): Portfolio!
+  ledgerAccounts(environmentId: ID!): [LedgerAccount!]!
+  journals(environmentId: ID!, operationId: String, correlationId: ID, before: DateTime, limit: Int): [Journal!]!
+  ledgerOperations(environmentId: ID!, kind: String, state: String, txid: String, limit: Int): [LedgerOperation!]!
+  customerBalances(environmentId: ID!): [CustomerBalance!]!
+  ledgerInvariants(environmentId: ID!): LedgerInvariants!
+  financialRules: [FinancialRule!]!
+  operationTimeline(environmentId: ID!, operationId: String!): OperationTimeline!
+  reconciliationRuns(environmentId: ID!, limit: Int): [ReconciliationRun!]!
+  reconciliationRun(id: ID!): ReconciliationRun
+  discrepancies(environmentId: ID!, states: [String!], kind: String, limit: Int): [Discrepancy!]!
+  discrepancy(id: ID!): Discrepancy
+  overview(environmentId: ID!): Overview!
+  scenarios: [Scenario!]!
+  scenario(id: ID!): Scenario
+  experimentRuns(environmentId: ID!, limit: Int): [ExperimentRun!]!
+  experimentRun(id: ID!): ExperimentRun
+  experimentActions: [ActionDescriptor!]!
+  runtimeCapabilities(environmentId: ID!): [String!]!
+  configResources(kind: String): [ConfigResource!]!
+  configResource(kind: String!, name: String!): ConfigResource
+  configSchema(kind: String!): JSON!
+  dashboards(workspace: String!): [Dashboard!]!
+  widgetTypes: [WidgetType!]!
+  alertPolicies(environmentId: ID!): [AlertPolicy!]!
+  alerts(environmentId: ID!, state: String, limit: Int): [AlertOccurrence!]!
+  me: User
+}
+
+type RootMutationType {
+  createEnvironment(slug: String!, name: String!, requiredConfirmations: Int): Environment
+  saveIntegration(environmentId: ID!, input: IntegrationInput!): Integration
+  deleteIntegration(id: ID!): Boolean
+  testIntegration(id: ID!): ConnectionTest
+  putSecret(environmentId: ID!, name: String!, value: String!): Boolean
+  createUser(email: String!, name: String!, role: String!, password: String!, environmentId: ID): User
+  updateUser(id: ID!, role: String, disabled: Boolean): User
+  setMembership(userId: ID!, environmentId: ID!, role: String!): Boolean
+  updateLocale(locale: String!): User
+  replayEvents(consumer: String!, fromSeq: Int!): Boolean
+  createWallet(environmentId: ID!, input: WalletInput!): Wallet
+  addWatchedAddress(walletId: ID!, address: String!, label: String): Wallet
+  deleteWallet(id: ID!): Boolean
+  syncChain(environmentId: ID!): Boolean
+  requestWithdrawal(environmentId: ID!, accountRef: String!, amountSats: Sats!, feeSats: Sats, idempotencyKey: String!): PostingResult
+  settleWithdrawal(environmentId: ID!, idempotencyKey: String!, outcome: String!, txid: String, reason: String): PostingResult
+  internalTransfer(environmentId: ID!, fromRef: String!, toRef: String!, amountSats: Sats!, idempotencyKey: String!): PostingResult
+  compensateJournal(environmentId: ID!, journalId: ID!, reason: String!): PostingResult
+  runReconciliation(environmentId: ID!): ReconciliationRun
+  transitionDiscrepancy(id: ID!, state: String!, note: String): Discrepancy
+  addDiscrepancyNote(id: ID!, body: String!, kind: String, data: JSON): DiscrepancyNote
+  startExperiment(environmentId: ID!, scenarioId: ID!, seed: Int): ExperimentRun
+  abortExperiment(id: ID!): ExperimentRun
+  validateConfig(yaml: String, document: JSON): ConfigValidation!
+  planConfig(document: JSON!): ConfigPlan
+  applyConfig(document: JSON!, expectedRevision: Int, message: String): ConfigApplyResult
+  reapplyConfig(kind: String!, name: String!, revision: Int!): ConfigApplyResult
+  deleteConfig(kind: String!, name: String!): Boolean
+  saveDashboard(name: String!, spec: JSON!, lockVersion: Int): Dashboard
+  deleteDashboard(id: ID!): Boolean
+  restoreDefaultDashboard(workspace: String!): Dashboard
+  saveAlertPolicy(environmentId: ID!, input: AlertPolicyInput!): AlertPolicy
+  deleteAlertPolicy(id: ID!): Boolean
+  updateAlert(id: ID!, action: String!): AlertOccurrence
+  retryAlertDelivery(id: ID!): Boolean
+}
+
+type Scenario {
+  id: ID!
+  name: String!
+  version: Int!
+  title: String!
+  description: String
+  guarantee: String
+  requiredCapabilities: [String!]!
+  spec: JSON
+  insertedAt: DateTime
+  versions: [Int!]!
+}
+
+type ExperimentStep {
+  id: ID!
+  position: Int!
+  stepKey: String!
+  phase: String!
+  action: String!
+  params: JSON
+  status: String!
+  attempts: Int!
+  maxAttempts: Int!
+  timeoutMs: Int!
+  checkpoint: JSON
+  result: JSON
+  evidence: JSON
+  failureReason: String
+  startedAt: DateTime
+  finishedAt: DateTime
+}
+
+type AssertionResult {
+  id: ID!
+  position: Int!
+  type: String!
+  params: JSON
+  outcome: String!
+  expected: JSON
+  actual: JSON
+  message: String
+  attempts: Int!
+  evaluatedAt: DateTime!
+}
+
+type ExperimentRun {
+  id: ID!
+  environmentId: ID!
+  scenarioId: ID!
+  scenarioName: String!
+  scenarioVersion: Int!
+  status: String!
+  seed: String!
+  statusReason: String
+  cleanupStatus: String!
+  startedAt: DateTime
+  finishedAt: DateTime
+  insertedAt: DateTime!
+  report: JSON
+  steps: [ExperimentStep!]!
+  assertions: [AssertionResult!]!
+}
+
+type ActionDescriptor {
+  name: String!
+  idempotency: String!
+  capabilities: [String!]!
+}
+
+type ConfigResource {
+  id: ID!
+  kind: String!
+  name: String!
+  environmentRef: String
+  desiredRevision: Int!
+  appliedRevision: Int
+  status: String!
+  statusMessage: String
+  observed: JSON
+  updatedAt: DateTime!
+  yaml: String
+  document: JSON
+  revisions: [ConfigRevision!]!
+}
+
+type ConfigRevision {
+  revision: Int!
+  spec: JSON
+  yaml: String!
+  authorEmail: String
+  message: String
+  insertedAt: DateTime!
+}
+
+type ConfigIssue {
+  path: String
+  message: String!
+  line: Int
+  column: Int
+}
+
+type ConfigValidation {
+  valid: Boolean!
+  document: JSON
+  canonicalYaml: String
+  errors: [ConfigIssue!]!
+}
+
+type ConfigChange {
+  op: String!
+  path: String!
+  old: JSON
+  new: JSON
+}
+
+type ConfigPlan {
+  action: String!
+  kind: String!
+  name: String!
+  currentRevision: Int
+  changes: [ConfigChange!]!
+  impact: [String!]!
+  canonicalYaml: String!
+  currentYaml: String
+}
+
+type ConfigApplyResult {
+  changed: Boolean!
+  resource: ConfigResource!
+}
+
+type Dashboard {
+  id: ID!
+  name: String!
+  title: String!
+  workspace: String!
+  spec: JSON!
+  isDefault: Boolean!
+  shared: Boolean!
+  lockVersion: Int!
+  updatedAt: DateTime
+}
+
+type WidgetType {
+  type: String!
+  context: String!
+  minWidth: Int!
+  minHeight: Int!
+  permission: String!
+  refresh: String!
+  workspaces: [String!]!
+}
+
+type AlertPolicy {
+  id: ID!
+  name: String!
+  eventTypes: [String!]!
+  severity: String!
+  cooldownSeconds: Int!
+  destinations: JSON
+  enabled: Boolean!
+}
+
+type AlertDelivery {
+  id: ID!
+  destination: String!
+  kind: String!
+  status: String!
+  attempts: Int!
+  lastError: String
+  responseStatus: Int
+  deliveredAt: DateTime
+  updatedAt: DateTime
+}
+
+type AlertOccurrence {
+  id: ID!
+  fingerprint: String!
+  state: String!
+  severity: String!
+  title: String!
+  details: JSON
+  count: Int!
+  firstSeenAt: DateTime!
+  lastSeenAt: DateTime!
+  resolvedAt: DateTime
+  policyName: String
+  deliveries: [AlertDelivery!]!
+}
+
+type Overview {
+  confirmedSats: Sats!
+  pendingSats: Sats!
+  utxoCount: Int!
+  tipHeight: Int
+  tipHash: String
+  tipTime: DateTime
+  mempoolSize: Int!
+  openDiscrepancies: Int!
+  lastReconciliation: ReconciliationRun
+  activeExperiments: [ExperimentRun!]!
+  recentExperiments: [ExperimentRun!]!
+  firingAlerts: Int!
+  ingestionLagBlocks: Int
+  ingestionLatencyMs: Int
+}
+
+input AlertPolicyInput {
+  name: String!
+  eventTypes: [String!]!
+  severity: String
+  cooldownSeconds: Int
+  destinations: JSON
+  enabled: Boolean
+}
+
+type LedgerAccount {
+  id: ID!
+  code: String!
+  name: String!
+  type: String!
+  normalBalance: String!
+  asset: String!
+  restricted: Boolean!
+  ownerRef: String
+  balanceSats: Sats!
+  debitTotal: Sats!
+  creditTotal: Sats!
+}
+
+type Posting {
+  id: ID!
+  accountCode: String!
+  asset: String!
+  direction: String!
+  amountSats: Sats!
+}
+
+type Journal {
+  id: ID!
+  operationId: String!
+  entryKind: String!
+  ruleName: String!
+  ruleVersion: Int!
+  description: String
+  reversesJournalId: ID
+  correlationId: ID
+  causationId: ID
+  metadata: JSON
+  postedAt: DateTime!
+  postings: [Posting!]!
+}
+
+type LedgerOperation {
+  id: ID!
+  operationId: String!
+  kind: String!
+  state: String!
+  accountRef: String
+  asset: String!
+  amountSats: Sats!
+  feeSats: Sats!
+  txid: String
+  vout: Int
+  blockHash: String
+  generation: Int!
+  updatedAt: DateTime
+}
+
+type CustomerBalance {
+  accountRef: String!
+  availableSats: Sats!
+  pendingSats: Sats!
+  reservedSats: Sats!
+}
+
+type LedgerInvariants {
+  ok: Boolean!
+  balanced: Boolean!
+  totalDebits: Sats!
+  totalCredits: Sats!
+  unbalancedJournals: [String!]!
+  projectionDrift: JSON
+  negativeRestricted: JSON
+  duplicateCredits: Int!
+}
+
+type FinancialRule {
+  name: String!
+  version: Int!
+  current: Boolean!
+}
+
+type OperationTimeline {
+  operation: LedgerOperation
+  journals: [Journal!]!
+  events: [DomainEvent!]!
+}
+
+type PostingResult {
+  journal: Journal!
+  status: String!
+}
+
+type ReconciliationRun {
+  id: ID!
+  environmentId: ID!
+  policyName: String!
+  policyVersion: Int!
+  policy: JSON
+  status: String!
+  completeness: String!
+  trigger: String!
+  referenceHeight: Int
+  referenceHash: String
+  sources: JSON
+  summary: JSON
+  error: String
+  startedAt: DateTime
+  finishedAt: DateTime
+  insertedAt: DateTime!
+  items(state: String, limit: Int): [ReconciliationItem!]!
+}
+
+type ReconciliationItem {
+  id: ID!
+  matchKey: String!
+  state: String!
+  discrepancyKind: String
+  reason: String!
+  records: JSON
+  amountSats: Sats
+  txid: String
+  vout: Int
+}
+
+type DiscrepancyNote {
+  id: ID!
+  authorEmail: String
+  kind: String!
+  body: String!
+  data: JSON
+  insertedAt: DateTime!
+}
+
+type Discrepancy {
+  id: ID!
+  environmentId: ID!
+  kind: String!
+  state: String!
+  severity: String!
+  matchKey: String!
+  txid: String
+  vout: Int
+  amountSats: Sats
+  reason: String!
+  evidence: JSON
+  source: String
+  firstRunId: ID!
+  lastRunId: ID!
+  occurrences: Int!
+  resolution: String
+  resolvedAt: DateTime
+  insertedAt: DateTime!
+  updatedAt: DateTime!
+  lockVersion: Int!
+  suggestion: String!
+  notes: [DiscrepancyNote!]!
+}
+
+type Block {
+  hash: String!
+  height: Int!
+  prevHash: String
+  chainwork: String
+  blockTime: DateTime
+  txCount: Int!
+  inBestChain: Boolean!
+  connectedAt: DateTime
+  disconnectedAt: DateTime
+}
+
+type NodeObservation {
+  observedAt: DateTime!
+  reachable: Boolean!
+  chain: String
+  height: Int
+  bestHash: String
+  chainwork: String
+  initialBlockDownload: Boolean
+  peers: Int
+  mempoolSize: Int
+  rpcLatencyMs: Int
+  error: String
+}
+
+type ZmqCheckpoint {
+  lastSequence: Int
+  gapsTotal: Int!
+  duplicatesTotal: Int!
+  updatedAt: DateTime
+}
+
+type NodeStatus {
+  integration: Integration!
+  latest: NodeObservation
+  isReference: Boolean!
+  history(limit: Int): [NodeObservation!]!
+  downtime: [DomainEvent!]!
+  zmq: ZmqCheckpoint
+}
+
+type ChainOverview {
+  tip: Block
+  checkpointHeight: Int
+  checkpointHash: String
+  checkpointUpdatedAt: DateTime
+  mempoolSize: Int!
+  transactionCounts: JSON
+  diverged: Boolean!
+  referenceNode: String
+  requiredConfirmations: Int!
+  reorganizations: [DomainEvent!]!
+  staleBlocks: [Block!]!
+}
+
+type TxOutput {
+  vout: Int!
+  valueSats: Sats!
+  address: String
+  scriptType: String
+  spentByTxid: String
+  watched: JSON
+}
+
+type TxInput {
+  vin: Int!
+  prevTxid: String
+  prevVout: Int
+  valueSats: Sats
+  address: String
+  watched: JSON
+}
+
+type StatusChange {
+  fromStatus: String
+  toStatus: String!
+  blockHash: String
+  blockHeight: Int
+  reason: String
+  eventId: ID
+  insertedAt: DateTime!
+}
+
+type Transaction {
+  id: ID!
+  environmentId: ID!
+  txid: String!
+  status: String!
+  blockHash: String
+  blockHeight: Int
+  feeSats: Sats
+  vsize: Int
+  isCoinbase: Boolean!
+  replacedByTxid: String
+  conflictsWith: [String]
+  firstSeenAt: DateTime!
+  statusChangedAt: DateTime!
+  confirmations: Int!
+  totalOutSats: Sats
+  outputs: [TxOutput!]!
+  inputs: [TxInput!]!
+  statusHistory: [StatusChange!]!
+  events: [DomainEvent!]!
+  operations: [LedgerOperation!]!
+  reconciliationStatus: String
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+}
+
+type TransactionConnection {
+  nodes: [Transaction!]!
+  pageInfo: PageInfo!
+}
+
+input TransactionFilter {
+  status: String
+  search: String
+  address: String
+  watchedOnly: Boolean
+  includeCoinbase: Boolean
+}
+
+type WatchedAddress {
+  address: String!
+  label: String
+  derivationIndex: Int
+}
+
+type Balance {
+  confirmedSats: Sats!
+  pendingSats: Sats!
+  utxoCount: Int!
+}
+
+type Wallet {
+  id: ID!
+  environmentId: ID!
+  name: String!
+  kind: String!
+  descriptor: String
+  derivationLimit: Int!
+  groupName: String
+  labels: [String!]!
+  accountRef: String
+  addresses: [WatchedAddress!]!
+  balance: Balance!
+}
+
+type Utxo {
+  txid: String!
+  vout: Int!
+  address: String
+  valueSats: Sats!
+  status: String!
+  blockHeight: Int
+  spentUnconfirmed: Boolean!
+}
+
+type WalletHistoryEntry {
+  txid: String!
+  status: String!
+  blockHeight: Int
+  firstSeenAt: DateTime
+  receivedSats: Sats!
+  sentSats: Sats!
+}
+
+type InternalTransfer {
+  txid: String!
+  fromWalletId: ID!
+  toWalletId: ID!
+  valueSats: Sats!
+}
+
+type Portfolio {
+  balance: Balance!
+  walletCount: Int!
+  utxos: [Utxo!]!
+  history: [WalletHistoryEntry!]!
+  internalTransfers: [InternalTransfer!]!
+}
+
+type VolumeBucket {
+  bucket: DateTime!
+  count: Int!
+  valueSats: Sats!
+}
+
+input WalletInput {
+  name: String!
+  kind: String!
+  descriptor: String
+  derivationLimit: Int
+  groupName: String
+  labels: [String!]
+  accountRef: String
+  addresses: [String!]
+}
+
+type User {
+  id: ID!
+  email: String!
+  name: String!
+  role: String!
+  locale: String!
+  disabledAt: DateTime
+  insertedAt: DateTime
+}
+
+type Environment {
+  id: ID!
+  slug: String!
+  name: String!
+  kind: String!
+  network: String!
+  status: String!
+  requiredConfirmations: Int!
+  settings: JSON
+  insertedAt: DateTime
+}
+
+type Integration {
+  id: ID!
+  environmentId: ID!
+  name: String!
+  kind: String!
+  config: JSON
+  secretRef: String
+  enabled: Boolean!
+  status: String!
+  health: JSON
+  capabilities: [String!]!
+  enabledOperations: [String]
+  retry: JSON
+  checkpoint: JSON
+  lastSyncAt: DateTime
+  lastError: String
+  lockVersion: Int!
+  updatedAt: DateTime
+  errors: [IntegrationError!]!
+}
+
+type IntegrationError {
+  message: String!
+  occurredAt: DateTime!
+}
+
+type ConnectionTest {
+  ok: Boolean!
+  status: String!
+  details: JSON
+  error: String
+}
+
+type AuditEntry {
+  id: ID!
+  actorEmail: String
+  action: String!
+  environmentId: ID
+  resourceType: String
+  resourceId: String
+  changes: JSON
+  ip: String
+  correlationId: ID
+  insertedAt: DateTime!
+}
+
+type DomainEvent {
+  id: ID!
+  seq: Int!
+  eventType: String!
+  schemaVersion: Int!
+  environmentId: ID!
+  networkId: String
+  aggregateType: String!
+  aggregateId: String!
+  aggregateVersion: Int
+  occurredAt: DateTime!
+  observedAt: DateTime!
+  correlationId: ID!
+  causationId: ID
+  payload: JSON
+}
+
+type ConsumerCheckpoint {
+  consumer: String!
+  lastSeq: Int!
+  lag: Int!
+  updatedAt: DateTime
+}
+
+type JobStat {
+  queue: String!
+  state: String!
+  count: Int!
+}
+
+type Job {
+  id: ID!
+  queue: String!
+  worker: String!
+  state: String!
+  attempt: Int!
+  maxAttempts: Int!
+  errors: JSON
+  insertedAt: DateTime
+  attemptedAt: DateTime
+  completedAt: DateTime
+}
+
+input IntegrationInput {
+  name: String!
+  kind: String!
+  config: JSON!
+  secretRef: String
+  enabled: Boolean
+  lockVersion: Int
+}
+
+scalar JSON
+
+"Integer amount of satoshis (safe up to 2^53)"
+scalar Sats
+
+"""
+The `DateTime` scalar type represents a date and time in the UTC
+timezone. The DateTime appears in a JSON response as an ISO8601 formatted
+string, including UTC timezone ("Z"). The parsed date and time string will
+be converted to UTC if there is an offset.
+"""
+scalar DateTime

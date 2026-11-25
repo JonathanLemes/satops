@@ -11,3 +11,4 @@ test-results/
 /benchmarks/results/*.json
 !/benchmarks/results/.gitkeep
 .vite/
+apps/web/dist/

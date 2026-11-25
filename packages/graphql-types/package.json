@@ -1,0 +1,10 @@
+{
+  "name": "@satops/graphql-types",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GraphQL schema exported from the Absinthe API; the single source for generated TypeScript types.",
+  "files": ["schema.graphql"],
+  "scripts": {
+    "codegen": "pnpm --filter @satops/web codegen"
+  }
+}

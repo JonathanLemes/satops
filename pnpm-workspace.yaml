@@ -2,3 +2,6 @@ packages:
   - apps/web
   - packages/*
   - examples/demo-fintech
+
+allowBuilds:
+  esbuild: true
