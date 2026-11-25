@@ -76,7 +76,15 @@ export function YamlEditor({
   );
 }
 
-export function YamlDiff({ original, modified, height = 360 }: { original: string; modified: string; height?: number }) {
+export function YamlDiff({
+  original,
+  modified,
+  height = 360,
+}: {
+  original: string;
+  modified: string;
+  height?: number;
+}) {
   const { resolvedTheme } = useTheme();
   return (
     <div className="overflow-hidden rounded-md border border-border">
@@ -86,7 +94,13 @@ export function YamlDiff({ original, modified, height = 360 }: { original: strin
         theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
         original={original}
         modified={modified}
-        options={{ readOnly: true, renderSideBySide: true, minimap: { enabled: false }, fontSize: 12, scrollBeyondLastLine: false }}
+        options={{
+          readOnly: true,
+          renderSideBySide: true,
+          minimap: { enabled: false },
+          fontSize: 12,
+          scrollBeyondLastLine: false,
+        }}
       />
     </div>
   );

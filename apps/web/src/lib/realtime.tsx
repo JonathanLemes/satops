@@ -5,7 +5,15 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 type Listener = (topic: string, payload: Record<string, unknown>) => void;
 
 const TOPIC_QUERIES: Record<string, string[]> = {
-  "block.connected": ["Overview", "ChainOverview", "Blocks", "Transactions", "Nodes", "WidgetNodes", "WidgetTransactions"],
+  "block.connected": [
+    "Overview",
+    "ChainOverview",
+    "Blocks",
+    "Transactions",
+    "Nodes",
+    "WidgetNodes",
+    "WidgetTransactions",
+  ],
   "block.disconnected": ["ChainOverview", "Blocks", "Transactions"],
   "chain.reorganized": ["ChainOverview", "Blocks", "Transactions", "Overview", "WidgetReorgs"],
   "transaction.observed": ["Transactions", "Overview", "Portfolio", "WidgetTransactions"],
@@ -14,7 +22,13 @@ const TOPIC_QUERIES: Record<string, string[]> = {
   "node.status": ["Nodes", "WidgetNodes"],
   "node.disconnected": ["Nodes", "WidgetNodes", "Integrations"],
   "node.reconnected": ["Nodes", "WidgetNodes", "Integrations"],
-  "reconciliation.progress": ["ReconciliationRuns", "ReconciliationRun", "Overview", "Discrepancies", "WidgetReconciliation"],
+  "reconciliation.progress": [
+    "ReconciliationRuns",
+    "ReconciliationRun",
+    "Overview",
+    "Discrepancies",
+    "WidgetReconciliation",
+  ],
   "reconciliation.discrepancy_detected": ["Discrepancies", "Overview"],
   "experiment.progress": ["ExperimentRuns", "ExperimentRun", "Overview", "WidgetExperiments"],
   "experiment.step_completed": ["ExperimentRun"],

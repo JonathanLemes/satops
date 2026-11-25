@@ -1,5 +1,9 @@
 export const en = {
-  app: { name: "SatOps", tagline: "Bitcoin observability, reconciliation and resilience testing", sandbox: "Regtest sandbox: synthetic data only" },
+  app: {
+    name: "SatOps",
+    tagline: "Bitcoin observability, reconciliation and resilience testing",
+    sandbox: "Regtest sandbox: synthetic data only",
+  },
   common: {
     loading: "Loading…",
     retry: "Try again",
@@ -97,7 +101,8 @@ export const en = {
     submit: "Sign in",
     invalid: "Invalid email or password.",
     rateLimited: "Too many attempts. Try again in a minute.",
-    sandboxNote: "This instance only talks to Bitcoin Core in regtest mode with synthetic data. Never enter real wallet credentials or seed phrases.",
+    sandboxNote:
+      "This instance only talks to Bitcoin Core in regtest mode with synthetic data. Never enter real wallet credentials or seed phrases.",
   },
   status: {
     observed: "Observed",
@@ -228,7 +233,8 @@ export const en = {
     descriptorHint: "Public descriptors only (for example wpkh(tpub…/0/*)). Private keys are always rejected.",
     derivationLimit: "Derivation limit",
     addressesHint: "One regtest address per line.",
-    sensitive: "Addresses and xpubs reveal financial activity even though they cannot spend funds. Treat them as sensitive.",
+    sensitive:
+      "Addresses and xpubs reveal financial activity even though they cannot spend funds. Treat them as sensitive.",
     empty: "No wallets monitored yet",
     emptyHint: "Add regtest addresses or a public descriptor to follow balances and history.",
     received: "Received",
@@ -366,13 +372,17 @@ export const en = {
     title: "Learn with the sandbox",
     subtitle: "A short tour of the concepts SatOps shows, using regtest and fake money.",
     confirmationsTitle: "Confirmations are not final",
-    confirmations: "A transaction gains confirmations as blocks are added on top of it. A reorganization can replace those blocks, so a confirmed transaction can become unconfirmed again. SatOps waits for the confirmation policy before crediting and reverses credits when the chain changes.",
+    confirmations:
+      "A transaction gains confirmations as blocks are added on top of it. A reorganization can replace those blocks, so a confirmed transaction can become unconfirmed again. SatOps waits for the confirmation policy before crediting and reverses credits when the chain changes.",
     reconciliationTitle: "Why reconcile",
-    reconciliation: "Your application, the reference ledger and the blockchain are independent sources. Comparing them reveals duplicate credits, missing credits or wrong amounts that no single system can see by itself.",
+    reconciliation:
+      "Your application, the reference ledger and the blockchain are independent sources. Comparing them reveals duplicate credits, missing credits or wrong amounts that no single system can see by itself.",
     ledgerTitle: "Double-entry ledger",
-    ledger: "Every movement is a journal whose debits equal its credits. Posted journals are never edited; corrections are new compensating journals, so history stays explainable.",
+    ledger:
+      "Every movement is a journal whose debits equal its credits. Posted journals are never edited; corrections are new compensating journals, so history stays explainable.",
     experimentsTitle: "Resilience experiments",
-    experiments: "Experiments reorganize the chain, stop nodes or replay events on purpose and check that the financial guarantees still hold.",
+    experiments:
+      "Experiments reorganize the chain, stop nodes or replay events on purpose and check that the financial guarantees still hold.",
   },
   environments: {
     title: "Environments",
@@ -382,7 +392,8 @@ export const en = {
     kind: "Kind",
     network: "Network",
     create: "New environment",
-    regtestOnly: "Only regtest is allowed. Mainnet and public peers are refused by the backend, not only by configuration.",
+    regtestOnly:
+      "Only regtest is allowed. Mainnet and public peers are refused by the backend, not only by configuration.",
     manageAsCode: "Prefer managing environments declaratively in Configuration.",
   },
   nodes: {
@@ -408,7 +419,8 @@ export const en = {
     syncNow: "Sync now",
     syncQueued: "Synchronization queued",
     history: "Height and latency",
-    policyNote: "Reference selection uses the most-work valid chain reported by reachable regtest nodes, with configured priority as tie-breaker. It is not a vote.",
+    policyNote:
+      "Reference selection uses the most-work valid chain reported by reachable regtest nodes, with configured priority as tie-breaker. It is not a vote.",
   },
   blockchain: {
     title: "Blockchain",
@@ -428,7 +440,8 @@ export const en = {
     payload: "Payload",
     correlation: "Correlation",
     causation: "Causation",
-    mempoolNote: "Transient mempool events missed during a disconnection cannot always be reconstructed. Confirmed state is always rebuilt from RPC.",
+    mempoolNote:
+      "Transient mempool events missed during a disconnection cannot always be reconstructed. Confirmed state is always rebuilt from RPC.",
     txCount: "Transactions",
   },
   integrations: {
@@ -448,7 +461,8 @@ export const en = {
     secretHint: "Credentials are never stored in the configuration; reference a secret by name.",
     config: "Configuration",
     uploadCsv: "Upload CSV",
-    csvHint: "Columns: source_record_id, kind, account_ref, amount_sats, txid, vout, status, occurred_at. Amounts are integer satoshis.",
+    csvHint:
+      "Columns: source_record_id, kind, account_ref, amount_sats, txid, vout, status, occurred_at. Amounts are integer satoshis.",
     imported: "{{count}} records imported",
     editAsCode: "Edit as YAML",
     host: "Host",
@@ -535,7 +549,8 @@ export const en = {
     cleanup: "Cleanup",
     reason: "Outcome",
     builder: "Scenario builder",
-    builderHint: "Scenarios are declarative Experiment resources. Only registered actions can be used; no shell, code or manifests.",
+    builderHint:
+      "Scenarios are declarative Experiment resources. Only registered actions can be used; no shell, code or manifests.",
     actions: "Available actions",
     idempotency: "Idempotency",
     reproducibility: "Inputs are reproducible; block hashes, txids and timestamps are not bit-for-bit reproducible.",
@@ -568,7 +583,8 @@ export const en = {
     import: "Import file",
     export: "Export YAML",
     normalizationNote: "Comments and formatting are normalized to canonical YAML when saved.",
-    unknownFields: "This document has fields the form does not edit. They are preserved; switch to YAML to change them.",
+    unknownFields:
+      "This document has fields the form does not edit. They are preserved; switch to YAML to change them.",
     noChanges: "No changes",
     message: "Change message",
     kindLabel: "Kind",

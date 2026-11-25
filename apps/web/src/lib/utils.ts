@@ -35,7 +35,9 @@ export function formatDateTime(value: string | null | undefined, locale: string)
 
 export function formatTime(value: string | null | undefined, locale: string): string {
   if (!value) return "-";
-  return new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date(value));
+  return new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(
+    new Date(value),
+  );
 }
 
 export function relativeTime(value: string | null | undefined, locale: string, now = Date.now()): string {

@@ -12,7 +12,17 @@ import { downloadText, formatDateTime } from "@/lib/utils";
 import { YamlDiff, YamlEditor, type EditorMarker } from "@/components/data/yaml-editor";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/input";
-import { ErrorState, LoadingState, Notice, PageHeader, Panel, PanelHeader, Segmented, StatusTag, Tag } from "@/components/ui/misc";
+import {
+  ErrorState,
+  LoadingState,
+  Notice,
+  PageHeader,
+  Panel,
+  PanelHeader,
+  Segmented,
+  StatusTag,
+  Tag,
+} from "@/components/ui/misc";
 import { ConfirmDialog, Sheet } from "@/components/ui/overlay";
 import { KINDS, knownPaths, schemaFor, template, validateLocal, type Issue } from "./schema";
 import { SchemaForm } from "./schema-form";
@@ -162,7 +172,11 @@ export default function ConfigEditorPage() {
     const parsed = parseDocument(text, { uniqueKeys: true });
     if (parsed.errors.length) {
       const e = parsed.errors[0]!;
-      setParseIssue({ line: e.linePos?.[0]?.line ?? 1, column: e.linePos?.[0]?.col, message: e.message.split("\n")[0] ?? e.message });
+      setParseIssue({
+        line: e.linePos?.[0]?.line ?? 1,
+        column: e.linePos?.[0]?.col,
+        message: e.message.split("\n")[0] ?? e.message,
+      });
       return;
     }
     setParseIssue(null);
@@ -188,7 +202,14 @@ export default function ConfigEditorPage() {
   const runValidate = async () => {
     const r = await validate({ variables: { yaml: yamlText } });
     const v = r.data?.validateConfig;
-    setServerIssues(v?.valid ? [] : (v?.errors ?? []).map((e) => ({ path: e.path ?? (e.line ? t("config.line", { line: e.line }) : "/"), message: e.message })));
+    setServerIssues(
+      v?.valid
+        ? []
+        : (v?.errors ?? []).map((e) => ({
+            path: e.path ?? (e.line ? t("config.line", { line: e.line }) : "/"),
+            message: e.message,
+          })),
+    );
     return v;
   };
 
@@ -206,15 +227,22 @@ export default function ConfigEditorPage() {
   const runApply = async () => {
     if (!plan || !doc) return;
     try {
-      const r = await apply({ variables: { document: doc, expectedRevision: plan.currentRevision ?? 0, message: message || null } });
+      const r = await apply({
+        variables: { document: doc, expectedRevision: plan.currentRevision ?? 0, message: message || null },
+      });
       const result = r.data?.applyConfig;
       if (!result) return;
       toast.success(result.changed ? t("config.applied_") : t("config.unchanged"));
       setPlan(null);
-      if (isNew) navigate(`/engineering/configuration/${result.resource.kind}/${result.resource.name}`, { replace: true });
+      if (isNew)
+        navigate(`/engineering/configuration/${result.resource.kind}/${result.resource.name}`, { replace: true });
       else resource.refetch();
     } catch (e) {
-      const ext = (e as { graphQLErrors?: { extensions?: { code?: string; currentRevision?: number } }[]; errors?: { extensions?: { code?: string; currentRevision?: number } }[] }) ?? {};
+      const ext =
+        (e as {
+          graphQLErrors?: { extensions?: { code?: string; currentRevision?: number } }[];
+          errors?: { extensions?: { code?: string; currentRevision?: number } }[];
+        }) ?? {};
       const first = (ext.errors ?? ext.graphQLErrors ?? [])[0];
       if (first?.extensions?.code === "CONFLICT") setConflict(first.extensions.currentRevision ?? 0);
       else toast.error(e instanceof Error ? e.message : t("common.error"));
@@ -228,21 +256,31 @@ export default function ConfigEditorPage() {
   };
 
   if (!isNew && resource.loading && !resource.data) return <LoadingState rows={10} />;
-  if (!isNew && (resource.error || (!resource.loading && !res))) return <ErrorState onRetry={() => resource.refetch()} />;
+  if (!isNew && (resource.error || (!resource.loading && !res)))
+    return <ErrorState onRetry={() => resource.refetch()} />;
 
   const markers: EditorMarker[] = [
     ...(parseIssue ? [parseIssue] : []),
-    ...(validation.data?.validateConfig.errors ?? []).filter((e) => e.line).map((e) => ({ line: e.line!, column: e.column ?? undefined, message: e.message })),
+    ...(validation.data?.validateConfig.errors ?? [])
+      .filter((e) => e.line)
+      .map((e) => ({ line: e.line!, column: e.column ?? undefined, message: e.message })),
   ];
 
   return (
     <div className="flex flex-col gap-5">
-      <Link to="/engineering/configuration" className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-text">
+      <Link
+        to="/engineering/configuration"
+        className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-text"
+      >
         <ArrowLeft size={16} /> {t("config.resources")}
       </Link>
       <PageHeader
         title={isNew ? t("config.new") : `${res?.kind} / ${res?.name}`}
-        subtitle={!isNew && res ? `${t("config.desired")} ${res.desiredRevision} · ${t("config.applied")} ${res.appliedRevision ?? "-"}` : undefined}
+        subtitle={
+          !isNew && res
+            ? `${t("config.desired")} ${res.desiredRevision} · ${t("config.applied")} ${res.appliedRevision ?? "-"}`
+            : undefined
+        }
         actions={
           <>
             {!isNew && res ? <StatusTag status={res.status} /> : null}
@@ -260,7 +298,9 @@ export default function ConfigEditorPage() {
                 if (f) importFile(f);
               }}
             />
-            <Button onClick={() => doc && downloadText(`${doc.kind}-${doc.metadata?.name || "resource"}.yaml`, toYaml(doc))}>
+            <Button
+              onClick={() => doc && downloadText(`${doc.kind}-${doc.metadata?.name || "resource"}.yaml`, toYaml(doc))}
+            >
               <Download /> {t("config.export")}
             </Button>
             {!isNew ? (
@@ -311,7 +351,13 @@ export default function ConfigEditorPage() {
             {unknown.length ? <Notice tone="warning">{t("config.unknownFields")}</Notice> : null}
             {mode === "yaml" ? (
               <>
-                <YamlEditor value={yamlText} onChange={onYamlChange} markers={markers} readOnly={!canApply} ariaLabel="YAML" />
+                <YamlEditor
+                  value={yamlText}
+                  onChange={onYamlChange}
+                  markers={markers}
+                  readOnly={!canApply}
+                  ariaLabel="YAML"
+                />
                 <p className="text-xs text-text-muted">{t("config.normalizationNote")}</p>
               </>
             ) : doc && schema?.properties ? (
@@ -322,7 +368,9 @@ export default function ConfigEditorPage() {
                       id={id}
                       value={doc.metadata?.name ?? ""}
                       disabled={!isNew}
-                      onChange={(e) => onFormChange({ ...doc, metadata: { ...(doc.metadata ?? {}), name: e.target.value } })}
+                      onChange={(e) =>
+                        onFormChange({ ...doc, metadata: { ...(doc.metadata ?? {}), name: e.target.value } })
+                      }
                     />
                   )}
                 </Field>
@@ -342,8 +390,14 @@ export default function ConfigEditorPage() {
         <div className="flex flex-col gap-5">
           <Panel className="gap-3 p-5">
             <div className="flex items-center gap-2">
-              {localIssues.length || parseIssue ? <TriangleAlert size={16} className="text-warning" /> : <ShieldCheck size={16} className="text-success" />}
-              <span className="text-[13px] font-semibold">{localIssues.length || parseIssue ? t("config.invalid") : t("config.valid")}</span>
+              {localIssues.length || parseIssue ? (
+                <TriangleAlert size={16} className="text-warning" />
+              ) : (
+                <ShieldCheck size={16} className="text-success" />
+              )}
+              <span className="text-[13px] font-semibold">
+                {localIssues.length || parseIssue ? t("config.invalid") : t("config.valid")}
+              </span>
             </div>
             {parseIssue ? (
               <p className="text-xs text-danger">
@@ -374,7 +428,9 @@ export default function ConfigEditorPage() {
           {!isNew && res ? (
             <Panel className="gap-2 p-5">
               <h3 className="text-[13px] font-semibold">{t("config.observed")}</h3>
-              <pre className="max-h-60 overflow-auto rounded-md bg-surface-2 p-3 font-mono text-[11px]">{JSON.stringify(res.observed, null, 2)}</pre>
+              <pre className="max-h-60 overflow-auto rounded-md bg-surface-2 p-3 font-mono text-[11px]">
+                {JSON.stringify(res.observed, null, 2)}
+              </pre>
               <p className="text-[11px] text-text-muted">{formatDateTime(res.updatedAt, "en")}</p>
             </Panel>
           ) : null}
@@ -388,8 +444,19 @@ export default function ConfigEditorPage() {
             actions={
               canApply ? (
                 <div className="flex flex-wrap items-center gap-2">
-                  <Input aria-label={t("config.message")} placeholder={t("config.message")} value={message} onChange={(e) => setMessage(e.target.value)} className="w-64" />
-                  <Button variant="primary" onClick={runApply} loading={applyState.loading} disabled={plan.action === "noop"}>
+                  <Input
+                    aria-label={t("config.message")}
+                    placeholder={t("config.message")}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    className="w-64"
+                  />
+                  <Button
+                    variant="primary"
+                    onClick={runApply}
+                    loading={applyState.loading}
+                    disabled={plan.action === "noop"}
+                  >
                     <Play /> {t("config.apply")}
                   </Button>
                 </div>
@@ -412,7 +479,11 @@ export default function ConfigEditorPage() {
                 {plan.changes.map((c) => (
                   <li key={c.path} className="flex flex-wrap gap-2">
                     <Tag tone={c.op === "add" ? "success" : c.op === "remove" ? "danger" : "warning"} dot={false}>
-                      {c.op === "add" ? t("config.added") : c.op === "remove" ? t("config.removed") : t("config.replaced")}
+                      {c.op === "add"
+                        ? t("config.added")
+                        : c.op === "remove"
+                          ? t("config.removed")
+                          : t("config.replaced")}
                     </Tag>
                     <span>{c.path}</span>
                     {c.op === "replace" ? (
@@ -428,14 +499,24 @@ export default function ConfigEditorPage() {
           </div>
         </Panel>
       ) : null}
-      <Sheet open={historyOpen} onOpenChange={setHistoryOpen} title={t("config.history")} description={t("config.reapplyNote")} width={720}>
+      <Sheet
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        title={t("config.history")}
+        description={t("config.reapplyNote")}
+        width={720}
+      >
         <ul className="flex flex-col gap-4">
           {res?.revisions.map((r) => (
             <li key={r.revision} className="flex flex-col gap-2 rounded-md border border-border p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-[13px] font-semibold">
                   {t("config.revision")} {r.revision}
-                  {r.revision === res.appliedRevision ? <Tag tone="success" className="ml-2">{t("status.applied")}</Tag> : null}
+                  {r.revision === res.appliedRevision ? (
+                    <Tag tone="success" className="ml-2">
+                      {t("status.applied")}
+                    </Tag>
+                  ) : null}
                 </span>
                 <span className="text-xs text-text-muted">
                   {r.authorEmail ?? "system"} · {formatDateTime(r.insertedAt, "en")}

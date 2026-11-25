@@ -108,10 +108,28 @@ export default function SettingsPage() {
             }}
           >
             <Field label={t("settings.currentPassword")}>
-              {(id) => <Input id={id} type="password" autoComplete="current-password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} />}
+              {(id) => (
+                <Input
+                  id={id}
+                  type="password"
+                  autoComplete="current-password"
+                  value={pw.current}
+                  onChange={(e) => setPw({ ...pw, current: e.target.value })}
+                />
+              )}
             </Field>
             <Field label={t("settings.newPassword")} hint={t("settings.passwordRule")}>
-              {(id, d) => <Input id={id} aria-describedby={d} type="password" autoComplete="new-password" minLength={12} value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} />}
+              {(id, d) => (
+                <Input
+                  id={id}
+                  aria-describedby={d}
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={12}
+                  value={pw.next}
+                  onChange={(e) => setPw({ ...pw, next: e.target.value })}
+                />
+              )}
             </Field>
             <Button type="submit" variant="primary" className="self-start" disabled={pw.next.length < 12}>
               {t("settings.changePassword")}
@@ -158,7 +176,11 @@ export default function SettingsPage() {
                   </Select>
                 ),
               },
-              { key: "status", header: t("common.status"), cell: (u) => <StatusTag status={u.disabledAt ? "skipped" : "healthy"} /> },
+              {
+                key: "status",
+                header: t("common.status"),
+                cell: (u) => <StatusTag status={u.disabledAt ? "skipped" : "healthy"} />,
+              },
               { key: "created", header: t("common.created"), cell: (u) => formatDateTime(u.insertedAt, locale) },
               {
                 key: "toggle",
@@ -206,8 +228,19 @@ export default function SettingsPage() {
         }
       >
         <div className="flex flex-col gap-4">
-          <Field label="Email">{(id) => <Input id={id} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />}</Field>
-          <Field label={t("common.name")}>{(id) => <Input id={id} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />}</Field>
+          <Field label="Email">
+            {(id) => (
+              <Input
+                id={id}
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+              />
+            )}
+          </Field>
+          <Field label={t("common.name")}>
+            {(id) => <Input id={id} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />}
+          </Field>
           <Field label={t("settings.role")}>
             {(id) => (
               <Select id={id} value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
@@ -220,7 +253,16 @@ export default function SettingsPage() {
             )}
           </Field>
           <Field label={t("settings.password")} hint={t("settings.passwordRule")}>
-            {(id, d) => <Input id={id} aria-describedby={d} type="password" autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />}
+            {(id, d) => (
+              <Input
+                id={id}
+                aria-describedby={d}
+                type="password"
+                autoComplete="new-password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+              />
+            )}
           </Field>
         </div>
       </Sheet>

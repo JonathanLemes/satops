@@ -70,7 +70,12 @@ export default function JobsPage() {
           rowKey={(r) => r.queue}
           columns={[
             { key: "queue", header: t("jobs.queue"), primary: true, cell: (r) => r.queue },
-            ...states.map((st) => ({ key: st, header: t(`status.${st}` as "status.available"), align: "right" as const, cell: (r: { s: Record<string, number> }) => r.s[st] ?? 0 })),
+            ...states.map((st) => ({
+              key: st,
+              header: t(`status.${st}` as "status.available"),
+              align: "right" as const,
+              cell: (r: { s: Record<string, number> }) => r.s[st] ?? 0,
+            })),
           ]}
         />
       </Panel>
@@ -83,7 +88,12 @@ export default function JobsPage() {
           rows={data?.eventConsumers}
           rowKey={(c) => c.consumer}
           columns={[
-            { key: "consumer", header: t("common.name"), primary: true, cell: (c) => <span className="font-mono text-xs">{c.consumer}</span> },
+            {
+              key: "consumer",
+              header: t("common.name"),
+              primary: true,
+              cell: (c) => <span className="font-mono text-xs">{c.consumer}</span>,
+            },
             { key: "seq", header: t("jobs.lastSeq"), align: "right", cell: (c) => c.lastSeq },
             { key: "lag", header: t("jobs.lag"), align: "right", cell: (c) => c.lag },
             { key: "updated", header: t("common.updated"), cell: (c) => relativeTime(c.updatedAt, locale) },
@@ -105,7 +115,12 @@ export default function JobsPage() {
         <PanelHeader
           title={t("jobs.recent")}
           actions={
-            <Select aria-label={t("jobs.state")} value={state} onChange={(e) => setState(e.target.value)} className="w-44">
+            <Select
+              aria-label={t("jobs.state")}
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              className="w-44"
+            >
               <option value="">{t("common.all")}</option>
               {states.map((s) => (
                 <option key={s} value={s}>
@@ -122,11 +137,20 @@ export default function JobsPage() {
           onRowClick={(j) => setJob(j)}
           columns={[
             { key: "id", header: "#", cell: (j) => j.id },
-            { key: "worker", header: t("jobs.worker"), primary: true, cell: (j) => <span className="font-mono text-[11px]">{j.worker.replace("SatOps.", "")}</span> },
+            {
+              key: "worker",
+              header: t("jobs.worker"),
+              primary: true,
+              cell: (j) => <span className="font-mono text-[11px]">{j.worker.replace("SatOps.", "")}</span>,
+            },
             { key: "queue", header: t("jobs.queue"), cell: (j) => j.queue },
             { key: "state", header: t("jobs.state"), cell: (j) => <StatusTag status={j.state} /> },
             { key: "attempt", header: t("jobs.attempt"), align: "right", cell: (j) => `${j.attempt}/${j.maxAttempts}` },
-            { key: "time", header: t("common.time"), cell: (j) => formatDateTime(j.attemptedAt ?? j.insertedAt, locale) },
+            {
+              key: "time",
+              header: t("common.time"),
+              cell: (j) => formatDateTime(j.attemptedAt ?? j.insertedAt, locale),
+            },
           ]}
           pageSize={25}
         />
@@ -134,8 +158,17 @@ export default function JobsPage() {
       <Sheet open={!!job} onOpenChange={(o) => !o && setJob(null)} title={t("jobs.worker")}>
         <JsonView value={job} maxHeight={800} />
       </Sheet>
-      <Dialog open={!!replaying} onOpenChange={(o) => !o && setReplaying(null)} title={`${t("jobs.replay")}: ${replaying ?? ""}`} description={t("jobs.replayHint")}>
-        <Field label="seq">{(id) => <Input id={id} type="number" min={1} value={fromSeq} onChange={(e) => setFromSeq(Number(e.target.value))} />}</Field>
+      <Dialog
+        open={!!replaying}
+        onOpenChange={(o) => !o && setReplaying(null)}
+        title={`${t("jobs.replay")}: ${replaying ?? ""}`}
+        description={t("jobs.replayHint")}
+      >
+        <Field label="seq">
+          {(id) => (
+            <Input id={id} type="number" min={1} value={fromSeq} onChange={(e) => setFromSeq(Number(e.target.value))} />
+          )}
+        </Field>
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setReplaying(null)}>
             {t("common.cancel")}

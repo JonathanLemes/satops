@@ -130,29 +130,6 @@ defmodule SatOps.Experiments.Assertions do
     end
   end
 
-  defp count_discrepancies(a, ctx) do
-    discrepancies =
-      Reconciliation.list_discrepancies(ctx.env.id, states: ["open", "investigating"], kind: a["kind"], limit: 500)
-      |> Enum.filter(&(is_nil(a["source"]) or &1.evidence["source"] == a["source"]))
-
-    actual = length(discrepancies)
-
-    cond do
-      is_integer(a["atLeast"]) and actual >= a["atLeast"] ->
-        {:pass, %{"atLeast" => a["atLeast"]}, actual}
-
-      is_integer(a["atLeast"]) ->
-        {:fail, %{"atLeast" => a["atLeast"]}, actual, "#{actual} open discrepancies"}
-
-      true ->
-        compare(
-          a["expected"] || 0,
-          actual,
-          "#{actual} open discrepancies: #{discrepancies |> Enum.map(& &1.kind) |> Enum.uniq() |> Enum.join(", ")}"
-        )
-    end
-  end
-
   defp check("reconciliation.run_status", a, ctx) do
     case Reconciliation.list_runs(ctx.env.id, 1) do
       [run | _] -> compare(a["expected"] || "completed", run.status, "latest reconciliation is #{run.status}")
@@ -230,6 +207,29 @@ defmodule SatOps.Experiments.Assertions do
     if counts.total == counts.distinct and counts.total >= (a["atLeast"] || 0),
       do: {:pass, %{"unique" => true}, counts},
       else: {:fail, %{"unique" => true, "atLeast" => a["atLeast"]}, counts, "webhook receipts #{inspect(counts)}"}
+  end
+
+  defp count_discrepancies(a, ctx) do
+    discrepancies =
+      Reconciliation.list_discrepancies(ctx.env.id, states: ["open", "investigating"], kind: a["kind"], limit: 500)
+      |> Enum.filter(&(is_nil(a["source"]) or &1.evidence["source"] == a["source"]))
+
+    actual = length(discrepancies)
+
+    cond do
+      is_integer(a["atLeast"]) and actual >= a["atLeast"] ->
+        {:pass, %{"atLeast" => a["atLeast"]}, actual}
+
+      is_integer(a["atLeast"]) ->
+        {:fail, %{"atLeast" => a["atLeast"]}, actual, "#{actual} open discrepancies"}
+
+      true ->
+        compare(
+          a["expected"] || 0,
+          actual,
+          "#{actual} open discrepancies: #{discrepancies |> Enum.map(& &1.kind) |> Enum.uniq() |> Enum.join(", ")}"
+        )
+    end
   end
 
   defp resolve(ctx, key) do

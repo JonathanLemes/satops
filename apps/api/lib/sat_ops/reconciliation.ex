@@ -359,6 +359,8 @@ defmodule SatOps.Reconciliation do
         }
       end)
 
+    records = records ++ Ledger.customer_adjustments(env.id)
+
     balances =
       Ledger.customer_balances(env.id)
       |> Enum.map(&Map.new(&1, fn {k, v} -> {to_string(k), v} end))

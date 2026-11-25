@@ -12,7 +12,9 @@ const dictionaries: Record<Locale, Dictionary> = { en, "pt-BR": ptBR };
 const KEY = "satops.locale";
 
 type Join<K, P> = K extends string ? (P extends string ? `${K}.${P}` : never) : never;
-type Paths<T> = T extends string ? never : { [K in keyof T & string]: T[K] extends string ? K : Join<K, Paths<T[K]>> }[keyof T & string];
+type Paths<T> = T extends string
+  ? never
+  : { [K in keyof T & string]: T[K] extends string ? K : Join<K, Paths<T[K]>> }[keyof T & string];
 export type TranslationKey = Paths<Dictionary>;
 
 export function translate(locale: Locale, key: string, vars?: Record<string, string | number>): string {

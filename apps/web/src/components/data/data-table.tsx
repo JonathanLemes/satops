@@ -68,9 +68,18 @@ export function DataTable<T>({
   const pages = pageSize ? Math.max(1, Math.ceil(sorted.length / pageSize)) : 1;
   const visible = pageSize ? sorted.slice(page * pageSize, page * pageSize + pageSize) : sorted;
 
-  if (error && !rows?.length) return <ErrorState onRetry={onRetry} message={error instanceof Error ? error.message : undefined} />;
+  if (error && !rows?.length)
+    return <ErrorState onRetry={onRetry} message={error instanceof Error ? error.message : undefined} />;
   if (loading && !rows) return <LoadingState />;
-  if (!sorted.length) return <EmptyState icon={Inbox} title={empty?.title ?? t("common.noResults")} description={empty?.description} action={empty?.action} />;
+  if (!sorted.length)
+    return (
+      <EmptyState
+        icon={Inbox}
+        title={empty?.title ?? t("common.noResults")}
+        description={empty?.description}
+        action={empty?.action}
+      />
+    );
 
   return (
     <div className={cn("min-w-0", className)}>
@@ -91,11 +100,26 @@ export function DataTable<T>({
                     {c.sortValue ? (
                       <button
                         type="button"
-                        className={cn("inline-flex items-center gap-1 hover:text-text", c.align === "right" && "flex-row-reverse")}
-                        onClick={() => setSort(active && sort?.dir === "desc" ? { key: c.key, dir: "asc" } : { key: c.key, dir: "desc" })}
+                        className={cn(
+                          "inline-flex items-center gap-1 hover:text-text",
+                          c.align === "right" && "flex-row-reverse",
+                        )}
+                        onClick={() =>
+                          setSort(
+                            active && sort?.dir === "desc" ? { key: c.key, dir: "asc" } : { key: c.key, dir: "desc" },
+                          )
+                        }
                       >
                         {c.header}
-                        {active ? sort?.dir === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} /> : <ChevronsUpDown size={12} className="opacity-50" />}
+                        {active ? (
+                          sort?.dir === "asc" ? (
+                            <ArrowUp size={12} />
+                          ) : (
+                            <ArrowDown size={12} />
+                          )
+                        ) : (
+                          <ChevronsUpDown size={12} className="opacity-50" />
+                        )}
                       </button>
                     ) : (
                       c.header
@@ -121,7 +145,10 @@ export function DataTable<T>({
                 }
               >
                 {columns.map((c) => (
-                  <td key={c.key} className={cn(c.align === "right" && "text-right", c.primary && "cell-primary", c.className)}>
+                  <td
+                    key={c.key}
+                    className={cn(c.align === "right" && "text-right", c.primary && "cell-primary", c.className)}
+                  >
                     {c.cell(row)}
                   </td>
                 ))}
@@ -131,7 +158,10 @@ export function DataTable<T>({
         </table>
       </div>
       {pageSize && pages > 1 ? (
-        <nav className="flex items-center justify-between gap-3 px-4 py-3 text-xs text-text-secondary" aria-label="pagination">
+        <nav
+          className="flex items-center justify-between gap-3 px-4 py-3 text-xs text-text-secondary"
+          aria-label="pagination"
+        >
           <span>
             {page + 1} / {pages}
           </span>

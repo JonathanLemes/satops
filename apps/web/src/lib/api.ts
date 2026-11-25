@@ -22,10 +22,16 @@ export async function api<T>(method: "GET" | "POST", path: string, body?: unknow
   const headers: Record<string, string> = { accept: "application/json" };
   if (body !== undefined) headers["content-type"] = "application/json";
   if (method !== "GET" && csrfToken) headers["x-csrf-token"] = csrfToken;
-  const res = await fetch(path, { method, headers, credentials: "same-origin", body: body === undefined ? undefined : JSON.stringify(body) });
+  const res = await fetch(path, {
+    method,
+    headers,
+    credentials: "same-origin",
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
   const text = await res.text();
   const data = text ? (JSON.parse(text) as Record<string, unknown>) : {};
-  if (!res.ok) throw new ApiError(res.status, String(data.error ?? "error"), String(data.message ?? data.error ?? res.statusText));
+  if (!res.ok)
+    throw new ApiError(res.status, String(data.error ?? "error"), String(data.message ?? data.error ?? res.statusText));
   return data as T;
 }
 
@@ -44,7 +50,12 @@ export async function download(path: string, filename: string) {
 export async function upload<T>(path: string, file: File): Promise<T> {
   const form = new FormData();
   form.append("file", file);
-  const res = await fetch(path, { method: "POST", body: form, credentials: "same-origin", headers: csrfToken ? { "x-csrf-token": csrfToken } : {} });
+  const res = await fetch(path, {
+    method: "POST",
+    body: form,
+    credentials: "same-origin",
+    headers: csrfToken ? { "x-csrf-token": csrfToken } : {},
+  });
   const data = (await res.json()) as Record<string, unknown>;
   if (!res.ok) throw new ApiError(res.status, String(data.error ?? "error"), String(data.message ?? data.error));
   return data as T;

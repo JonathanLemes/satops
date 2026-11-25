@@ -43,7 +43,13 @@ export default function TransactionsPage() {
   const [address, setAddress] = useState("");
   const [watchedOnly, setWatchedOnly] = useState(false);
   const [includeCoinbase, setIncludeCoinbase] = useState(false);
-  const filter = { status: status || undefined, search: search || undefined, address: address || undefined, watchedOnly, includeCoinbase };
+  const filter = {
+    status: status || undefined,
+    search: search || undefined,
+    address: address || undefined,
+    watchedOnly,
+    includeCoinbase,
+  };
   const { data, loading, error, refetch, fetchMore } = useQuery(TRANSACTIONS, { variables: { environmentId, filter } });
   const [loadingMore, setLoadingMore] = useState(false);
   const conn = data?.transactions;
@@ -54,9 +60,26 @@ export default function TransactionsPage() {
       <Notice tone="info">{t("transactions.reorgNote")}</Notice>
       <Panel>
         <div className="flex flex-wrap items-center gap-3 p-4">
-          <Input aria-label={t("transactions.searchPlaceholder")} placeholder={t("transactions.searchPlaceholder")} value={search} onChange={(e) => setSearch(e.target.value)} className="w-64" />
-          <Input aria-label={t("transactions.addressPlaceholder")} placeholder={t("transactions.addressPlaceholder")} value={address} onChange={(e) => setAddress(e.target.value)} className="w-64" />
-          <Select aria-label={t("common.status")} value={status} onChange={(e) => setStatus(e.target.value)} className="w-44">
+          <Input
+            aria-label={t("transactions.searchPlaceholder")}
+            placeholder={t("transactions.searchPlaceholder")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-64"
+          />
+          <Input
+            aria-label={t("transactions.addressPlaceholder")}
+            placeholder={t("transactions.addressPlaceholder")}
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="w-64"
+          />
+          <Select
+            aria-label={t("common.status")}
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="w-44"
+          >
             {STATUSES.map((s) => (
               <option key={s} value={s}>
                 {s ? t(`status.${s}` as "status.pending") : t("common.all")}
@@ -77,11 +100,39 @@ export default function TransactionsPage() {
           columns={[
             { key: "txid", header: t("transactions.txid"), primary: true, cell: (r) => <Hash value={r.txid} /> },
             { key: "status", header: t("common.status"), cell: (r) => <StatusTag status={r.status} /> },
-            { key: "confs", header: t("transactions.confirmations"), align: "right", cell: (r) => formatNumber(r.confirmations, locale), sortValue: (r) => r.confirmations },
-            { key: "block", header: t("transactions.block"), align: "right", cell: (r) => formatNumber(r.blockHeight, locale), sortValue: (r) => r.blockHeight },
-            { key: "amount", header: t("transactions.total"), align: "right", cell: (r) => <Sats value={r.totalOutSats} />, sortValue: (r) => r.totalOutSats },
-            { key: "fee", header: t("transactions.fee"), align: "right", cell: (r) => (r.isCoinbase ? t("transactions.coinbase") : <Sats value={r.feeSats} />) },
-            { key: "seen", header: t("transactions.firstSeen"), cell: (r) => relativeTime(r.firstSeenAt, locale), sortValue: (r) => r.firstSeenAt },
+            {
+              key: "confs",
+              header: t("transactions.confirmations"),
+              align: "right",
+              cell: (r) => formatNumber(r.confirmations, locale),
+              sortValue: (r) => r.confirmations,
+            },
+            {
+              key: "block",
+              header: t("transactions.block"),
+              align: "right",
+              cell: (r) => formatNumber(r.blockHeight, locale),
+              sortValue: (r) => r.blockHeight,
+            },
+            {
+              key: "amount",
+              header: t("transactions.total"),
+              align: "right",
+              cell: (r) => <Sats value={r.totalOutSats} />,
+              sortValue: (r) => r.totalOutSats,
+            },
+            {
+              key: "fee",
+              header: t("transactions.fee"),
+              align: "right",
+              cell: (r) => (r.isCoinbase ? t("transactions.coinbase") : <Sats value={r.feeSats} />),
+            },
+            {
+              key: "seen",
+              header: t("transactions.firstSeen"),
+              cell: (r) => relativeTime(r.firstSeenAt, locale),
+              sortValue: (r) => r.firstSeenAt,
+            },
           ]}
           hasMore={conn?.pageInfo.hasNextPage}
           loadingMore={loadingMore}
@@ -91,7 +142,12 @@ export default function TransactionsPage() {
               variables: { after: conn?.pageInfo.endCursor },
               updateQuery: (prev, { fetchMoreResult }) =>
                 fetchMoreResult
-                  ? { transactions: { ...fetchMoreResult.transactions, nodes: [...prev.transactions.nodes, ...fetchMoreResult.transactions.nodes] } }
+                  ? {
+                      transactions: {
+                        ...fetchMoreResult.transactions,
+                        nodes: [...prev.transactions.nodes, ...fetchMoreResult.transactions.nodes],
+                      },
+                    }
                   : prev,
             }).finally(() => setLoadingMore(false));
           }}

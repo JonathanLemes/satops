@@ -79,6 +79,37 @@ defmodule SatOpsWeb.ApiTest do
              r["data"]["validateConfig"]
   end
 
+  test "JSON arguments accept objects for planning and dashboards", %{conn: conn} do
+    admin = user()
+
+    doc = %{
+      "apiVersion" => "satops.io/v1alpha1",
+      "kind" => "Environment",
+      "metadata" => %{"name" => "json-arg"},
+      "spec" => %{
+        "network" => %{"type" => "regtest"},
+        "safety" => %{"allowMainnet" => false, "allowPublicPeers" => false}
+      }
+    }
+
+    r = gql(login(conn, admin), "mutation($d: JSON!) { planConfig(document: $d) { action } }", %{"d" => doc})
+    assert r["data"]["planConfig"]["action"] == "create"
+
+    spec = %{
+      "workspace" => "engineering",
+      "widgets" => [
+        %{"id" => "h", "type" => "blockchain.height", "position" => %{"x" => 0, "y" => 0, "width" => 3, "height" => 1}}
+      ]
+    }
+
+    r =
+      gql(login(build_conn(), admin), "mutation($s: JSON!) { saveDashboard(name: \"mine\", spec: $s) { id } }", %{
+        "s" => spec
+      })
+
+    assert r["data"]["saveDashboard"]["id"]
+  end
+
   test "webhooks require a valid signature and are deduplicated", %{conn: conn} do
     env = environment()
     :ok = SatOps.Secrets.put(env.id, "hook-secret", "s3cret")

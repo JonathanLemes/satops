@@ -108,7 +108,11 @@ export default function ExperimentsPage() {
                       <Tag tone="neutral" dot={false}>
                         {s.name} v{s.version}
                       </Tag>
-                      {missing.length ? <Tag tone="warning">{t("experiments.missingCapabilities")}: {missing.join(", ")}</Tag> : null}
+                      {missing.length ? (
+                        <Tag tone="warning">
+                          {t("experiments.missingCapabilities")}: {missing.join(", ")}
+                        </Tag>
+                      ) : null}
                     </div>
                     <p className="text-[13px] text-text-secondary">{s.description}</p>
                     <p className="text-xs text-text-muted">
@@ -140,11 +144,29 @@ export default function ExperimentsPage() {
             onRowClick={(r) => navigate(`/engineering/experiments/runs/${r.id}`)}
             empty={{ title: t("experiments.empty") }}
             columns={[
-              { key: "scenario", header: t("experiments.scenarios"), primary: true, cell: (r) => `${r.scenarioName} v${r.scenarioVersion}` },
+              {
+                key: "scenario",
+                header: t("experiments.scenarios"),
+                primary: true,
+                cell: (r) => `${r.scenarioName} v${r.scenarioVersion}`,
+              },
               { key: "status", header: t("common.status"), cell: (r) => <StatusTag status={r.status} /> },
-              { key: "reason", header: t("experiments.reason"), cell: (r) => <span className="line-clamp-1 max-w-md">{r.statusReason ?? ""}</span> },
-              { key: "seed", header: t("experiments.seed"), cell: (r) => <span className="font-mono text-xs">{r.seed}</span> },
-              { key: "started", header: t("reconciliation.started"), cell: (r) => relativeTime(r.startedAt ?? r.insertedAt, locale), sortValue: (r) => r.insertedAt },
+              {
+                key: "reason",
+                header: t("experiments.reason"),
+                cell: (r) => <span className="line-clamp-1 max-w-md">{r.statusReason ?? ""}</span>,
+              },
+              {
+                key: "seed",
+                header: t("experiments.seed"),
+                cell: (r) => <span className="font-mono text-xs">{r.seed}</span>,
+              },
+              {
+                key: "started",
+                header: t("reconciliation.started"),
+                cell: (r) => relativeTime(r.startedAt ?? r.insertedAt, locale),
+                sortValue: (r) => r.insertedAt,
+              },
             ]}
             pageSize={25}
           />
@@ -154,8 +176,21 @@ export default function ExperimentsPage() {
             rows={data?.experimentActions}
             rowKey={(a) => a.name}
             columns={[
-              { key: "name", header: t("experiments.action"), primary: true, cell: (a) => <span className="font-mono text-xs">{a.name}</span> },
-              { key: "idem", header: t("experiments.idempotency"), cell: (a) => <Tag tone={a.idempotency === "unsafe" ? "warning" : "teal"} dot={false}>{a.idempotency}</Tag> },
+              {
+                key: "name",
+                header: t("experiments.action"),
+                primary: true,
+                cell: (a) => <span className="font-mono text-xs">{a.name}</span>,
+              },
+              {
+                key: "idem",
+                header: t("experiments.idempotency"),
+                cell: (a) => (
+                  <Tag tone={a.idempotency === "unsafe" ? "warning" : "teal"} dot={false}>
+                    {a.idempotency}
+                  </Tag>
+                ),
+              },
               {
                 key: "caps",
                 header: t("experiments.capabilities"),
@@ -171,7 +206,11 @@ export default function ExperimentsPage() {
         ) : null}
       </Panel>
       <p className="text-xs text-text-muted">{t("experiments.reproducibility")}</p>
-      <Dialog open={!!starting} onOpenChange={(o) => !o && setStarting(null)} title={`${t("experiments.start")}: ${starting?.title ?? ""}`}>
+      <Dialog
+        open={!!starting}
+        onOpenChange={(o) => !o && setStarting(null)}
+        title={`${t("experiments.start")}: ${starting?.title ?? ""}`}
+      >
         <Field label={`${t("experiments.seed")} (${t("common.optional")})`}>
           {(id) => <Input id={id} type="number" value={seed} onChange={(e) => setSeed(e.target.value)} />}
         </Field>
@@ -184,7 +223,9 @@ export default function ExperimentsPage() {
             loading={startState.loading}
             onClick={async () => {
               try {
-                const r = await start({ variables: { environmentId, scenarioId: starting!.id, seed: seed ? Number(seed) : null } });
+                const r = await start({
+                  variables: { environmentId, scenarioId: starting!.id, seed: seed ? Number(seed) : null },
+                });
                 toast.success(t("experiments.started"));
                 setStarting(null);
                 refetch();

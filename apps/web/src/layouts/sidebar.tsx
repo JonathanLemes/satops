@@ -10,7 +10,12 @@ import { NAV, SETTINGS_ITEM, type NavItem } from "./navigation";
 
 export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   return (
-    <aside className={cn("sidebar sticky top-0 hidden h-dvh shrink-0 flex-col overflow-y-auto bg-sidebar px-3 py-[22px] transition-[width] duration-200 lg:flex", collapsed ? "w-[76px]" : "w-56")}>
+    <aside
+      className={cn(
+        "sidebar sticky top-0 hidden h-dvh shrink-0 flex-col overflow-y-auto bg-sidebar px-3 py-[22px] transition-[width] duration-200 lg:flex",
+        collapsed ? "w-[76px]" : "w-56",
+      )}
+    >
       <SidebarContent collapsed={collapsed} onToggle={onToggle} />
     </aside>
   );
@@ -36,7 +41,15 @@ export function MobileNav({ open, onOpenChange }: { open: boolean; onOpenChange:
   );
 }
 
-function SidebarContent({ collapsed, onToggle, onClose }: { collapsed: boolean; onToggle?: () => void; onClose?: () => void }) {
+function SidebarContent({
+  collapsed,
+  onToggle,
+  onClose,
+}: {
+  collapsed: boolean;
+  onToggle?: () => void;
+  onClose?: () => void;
+}) {
   const { t } = useI18n();
   const { can } = useSession();
 
@@ -49,7 +62,9 @@ function SidebarContent({ collapsed, onToggle, onClose }: { collapsed: boolean; 
       className={({ isActive }) =>
         cn(
           "group flex h-9 shrink-0 items-center gap-[11px] rounded-md px-[11px] text-[13px] font-semibold transition-colors",
-          isActive ? "bg-[linear-gradient(90deg,var(--brand-glow),transparent)] text-white" : "text-[var(--sidebar-text)] hover:text-white",
+          isActive
+            ? "bg-[linear-gradient(90deg,var(--brand-glow),transparent)] text-white"
+            : "text-[var(--sidebar-text)] hover:text-white",
           collapsed && "justify-center px-0",
         )
       }
@@ -61,9 +76,19 @@ function SidebarContent({ collapsed, onToggle, onClose }: { collapsed: boolean; 
 
   return (
     <>
-      <div className={cn("group/brand relative flex h-[26px] shrink-0 items-center px-[11px]", collapsed && "justify-center px-0")}>
+      <div
+        className={cn(
+          "group/brand relative flex h-[26px] shrink-0 items-center px-[11px]",
+          collapsed && "justify-center px-0",
+        )}
+      >
         {collapsed ? (
-          <button type="button" onClick={onToggle} aria-label={t("nav.expand")} className="flex size-8 items-center justify-center rounded-md">
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-label={t("nav.expand")}
+            className="flex size-8 items-center justify-center rounded-md"
+          >
             <LogoMark size={24} />
           </button>
         ) : (
@@ -81,12 +106,14 @@ function SidebarContent({ collapsed, onToggle, onClose }: { collapsed: boolean; 
         ) : null}
       </div>
       {NAV.map((group, gi) => {
-        const items = group.items.filter((i) => can(i.permission));
+        const items = can(group.permission) ? group.items.filter((i) => can(i.permission)) : [];
         if (!items.length) return null;
         return (
           <div key={group.label} className={cn("flex flex-col", gi === 0 ? "mt-6" : "mt-5")}>
             {gi > 0 ? <div className="mb-4 h-px shrink-0 bg-[var(--sidebar-border)]" /> : null}
-            {!collapsed ? <p className="mb-2 flex h-5 items-center px-[11px] text-[11px] text-[#a1a1aa]">{t(group.label)}</p> : null}
+            {!collapsed ? (
+              <p className="mb-2 flex h-5 items-center px-[11px] text-[11px] text-[#a1a1aa]">{t(group.label)}</p>
+            ) : null}
             <nav aria-label={t(group.label)} className="flex flex-col gap-1">
               {items.map(item)}
             </nav>
@@ -103,7 +130,12 @@ function SidebarContent({ collapsed, onToggle, onClose }: { collapsed: boolean; 
       <div className="mb-3 h-px shrink-0 bg-[var(--sidebar-border)]" />
       <nav aria-label={t("nav.settings")}>{item(SETTINGS_ITEM)}</nav>
       {collapsed ? (
-        <button type="button" onClick={onToggle} aria-label={t("nav.expand")} className="mt-3 flex size-9 items-center justify-center self-center rounded-md text-[var(--sidebar-muted)] hover:bg-[var(--sidebar-surface)]">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label={t("nav.expand")}
+          className="mt-3 flex size-9 items-center justify-center self-center rounded-md text-[var(--sidebar-muted)] hover:bg-[var(--sidebar-surface)]"
+        >
           <PanelLeftOpen size={16} />
         </button>
       ) : null}

@@ -35,7 +35,10 @@ export function AppShell() {
 
   return (
     <RealtimeProvider environmentId={environment?.id ?? null}>
-      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2"
+      >
         Skip to content
       </a>
       <div className="flex min-h-dvh">
@@ -43,7 +46,11 @@ export function AppShell() {
         <MobileNav open={mobile} onOpenChange={onMobileChange} />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar onMenu={() => setMobile(true)} />
-          <main id="main" className="anim-arrive flex min-w-0 flex-1 flex-col gap-6 px-4 py-6 sm:px-8" key={environment?.id}>
+          <main
+            id="main"
+            className="anim-arrive flex min-w-0 flex-1 flex-col gap-6 px-4 py-6 sm:px-8"
+            key={environment?.id}
+          >
             {environment ? <Outlet /> : null}
           </main>
         </div>

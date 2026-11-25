@@ -85,7 +85,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [me, environmentId]);
 
   const can = useCallback(
-    (permission: string) => (environment ? environment.permissions.includes(permission) : false) || (me?.permissions.includes(permission) ?? false),
+    (permission: string) =>
+      (environment ? environment.permissions.includes(permission) : false) ||
+      (me?.permissions.includes(permission) ?? false),
     [environment, me],
   );
 

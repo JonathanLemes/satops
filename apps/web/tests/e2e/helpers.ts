@@ -9,6 +9,8 @@ export async function login(page: Page, email = ADMIN.email, password = ADMIN.pa
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
+  await page.waitForURL((url) => !url.pathname.startsWith("/login"));
+  await page.goto("/");
   await expect(page.getByRole("heading", { name: "Financial overview" })).toBeVisible();
 }
 

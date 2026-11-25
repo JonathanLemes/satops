@@ -100,7 +100,13 @@ function SchemaField({
         </legend>
         {hint}
         {err}
-        <SchemaForm schema={schema} value={value as Record<string, Json> | undefined} onChange={onChange} path={path} errors={errors} />
+        <SchemaForm
+          schema={schema}
+          value={value as Record<string, Json> | undefined}
+          onChange={onChange}
+          path={path}
+          errors={errors}
+        />
       </fieldset>
     );
   }
@@ -117,14 +123,28 @@ function SchemaField({
           <div key={i} className="flex flex-col gap-3 rounded-md bg-surface-2 p-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-text-secondary">#{i + 1}</span>
-              <Button size="icon-sm" variant="ghost" aria-label={`remove ${name} ${i + 1}`} onClick={() => onChange(list.filter((_, j) => j !== i))}>
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                aria-label={`remove ${name} ${i + 1}`}
+                onClick={() => onChange(list.filter((_, j) => j !== i))}
+              >
                 <Trash2 />
               </Button>
             </div>
             {schema.items!.properties ? (
-              <SchemaForm schema={schema.items!} value={item} onChange={(v) => onChange(list.map((x, j) => (j === i ? v : x)))} path={`${path}/${i}`} errors={errors} />
+              <SchemaForm
+                schema={schema.items!}
+                value={item}
+                onChange={(v) => onChange(list.map((x, j) => (j === i ? v : x)))}
+                path={`${path}/${i}`}
+                errors={errors}
+              />
             ) : (
-              <JsonField value={item} onChange={(v) => onChange(list.map((x, j) => (j === i ? (v as Record<string, Json>) : x)))} />
+              <JsonField
+                value={item}
+                onChange={(v) => onChange(list.map((x, j) => (j === i ? (v as Record<string, Json>) : x)))}
+              />
             )}
           </div>
         ))}
@@ -166,7 +186,10 @@ function SchemaField({
           value={list.join("\n")}
           aria-invalid={!!error}
           onChange={(e) => {
-            const items = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean);
+            const items = e.target.value
+              .split("\n")
+              .map((s) => s.trim())
+              .filter(Boolean);
             onChange(items.length ? items : undefined);
           }}
         />
@@ -211,7 +234,12 @@ function SchemaField({
     return (
       <div className="flex flex-col gap-1.5">
         {label}
-        <Select id={id} value={value === undefined || value === null ? "" : String(value)} aria-invalid={!!error} onChange={(e) => onChange(e.target.value || undefined)}>
+        <Select
+          id={id}
+          value={value === undefined || value === null ? "" : String(value)}
+          aria-invalid={!!error}
+          onChange={(e) => onChange(e.target.value || undefined)}
+        >
           {!required ? <option value="">-</option> : null}
           {schema.enum!.map((opt) => (
             <option key={String(opt)} value={String(opt)}>

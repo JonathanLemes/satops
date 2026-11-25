@@ -103,15 +103,32 @@ const COMPENSATE = graphql(`
 
 const WITHDRAW = graphql(`
   mutation RequestWithdrawal($environmentId: ID!, $accountRef: String!, $amountSats: Sats!, $idempotencyKey: String!) {
-    requestWithdrawal(environmentId: $environmentId, accountRef: $accountRef, amountSats: $amountSats, idempotencyKey: $idempotencyKey) {
+    requestWithdrawal(
+      environmentId: $environmentId
+      accountRef: $accountRef
+      amountSats: $amountSats
+      idempotencyKey: $idempotencyKey
+    ) {
       status
     }
   }
 `);
 
 const TRANSFER = graphql(`
-  mutation InternalTransfer($environmentId: ID!, $fromRef: String!, $toRef: String!, $amountSats: Sats!, $idempotencyKey: String!) {
-    internalTransfer(environmentId: $environmentId, fromRef: $fromRef, toRef: $toRef, amountSats: $amountSats, idempotencyKey: $idempotencyKey) {
+  mutation InternalTransfer(
+    $environmentId: ID!
+    $fromRef: String!
+    $toRef: String!
+    $amountSats: Sats!
+    $idempotencyKey: String!
+  ) {
+    internalTransfer(
+      environmentId: $environmentId
+      fromRef: $fromRef
+      toRef: $toRef
+      amountSats: $amountSats
+      idempotencyKey: $idempotencyKey
+    ) {
       status
     }
   }
@@ -143,15 +160,26 @@ export default function LedgerPage() {
   const [opOpen, setOpOpen] = useState(false);
   const inv = ledger.data?.ledgerInvariants;
   const selectedJournal = journals.data?.journals.find((j) => j.id === journal);
-  const form = useForm<z.infer<typeof opSchema>>({ resolver: zodResolver(opSchema) as never, defaultValues: { type: "withdrawal", from: "", to: "", amount: 1000, key: "" } });
+  const form = useForm<z.infer<typeof opSchema>>({
+    resolver: zodResolver(opSchema) as never,
+    defaultValues: { type: "withdrawal", from: "", to: "", amount: 1000, key: "" },
+  });
   const opType = form.watch("type");
 
   const submitOp = form.handleSubmit(async (v) => {
     try {
       const r =
         v.type === "withdrawal"
-          ? (await withdraw({ variables: { environmentId, accountRef: v.from, amountSats: v.amount, idempotencyKey: v.key } })).data?.requestWithdrawal?.status
-          : (await transfer({ variables: { environmentId, fromRef: v.from, toRef: v.to, amountSats: v.amount, idempotencyKey: v.key } })).data?.internalTransfer?.status;
+          ? (
+              await withdraw({
+                variables: { environmentId, accountRef: v.from, amountSats: v.amount, idempotencyKey: v.key },
+              })
+            ).data?.requestWithdrawal?.status
+          : (
+              await transfer({
+                variables: { environmentId, fromRef: v.from, toRef: v.to, amountSats: v.amount, idempotencyKey: v.key },
+              })
+            ).data?.internalTransfer?.status;
       toast.success(`${t("common.saved")} (${r})`);
       setOpOpen(false);
       ledger.refetch();
@@ -174,15 +202,27 @@ export default function LedgerPage() {
         }
       />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricCard label={t("ledger.invariants")} value={inv?.ok ? t("common.yes") : t("common.no")} hint={inv?.ok ? t("ledger.ok") : t("ledger.violated")} glow={inv?.ok ? "green" : "red"} />
+        <MetricCard
+          label={t("ledger.invariants")}
+          value={inv?.ok ? t("common.yes") : t("common.no")}
+          hint={inv?.ok ? t("ledger.ok") : t("ledger.violated")}
+          glow={inv?.ok ? "green" : "red"}
+        />
         <MetricCard label={t("ledger.debits")} value={<Sats value={inv?.totalDebits} />} glow="blue" />
         <MetricCard label={t("ledger.credits")} value={<Sats value={inv?.totalCredits} />} glow="violet" />
-        <MetricCard label={t("ledger.duplicates")} value={inv?.duplicateCredits ?? 0} glow={inv?.duplicateCredits ? "red" : "green"} />
+        <MetricCard
+          label={t("ledger.duplicates")}
+          value={inv?.duplicateCredits ?? 0}
+          glow={inv?.duplicateCredits ? "red" : "green"}
+        />
       </div>
       {inv && !inv.ok ? (
         <Notice tone="danger">
           <ShieldAlert size={16} className="mt-0.5 shrink-0" />
-          <JsonView value={{ unbalanced: inv.unbalancedJournals, drift: inv.projectionDrift, negative: inv.negativeRestricted }} className="w-full bg-transparent" />
+          <JsonView
+            value={{ unbalanced: inv.unbalancedJournals, drift: inv.projectionDrift, negative: inv.negativeRestricted }}
+            className="w-full bg-transparent"
+          />
         </Notice>
       ) : inv ? (
         <p className="flex items-center gap-2 text-xs text-success">
@@ -212,12 +252,40 @@ export default function LedgerPage() {
             loading={ledger.loading}
             rowKey={(a) => a.id}
             columns={[
-              { key: "code", header: t("ledger.code"), primary: true, cell: (a) => <span className="font-mono text-xs">{a.code}</span>, sortValue: (a) => a.code },
+              {
+                key: "code",
+                header: t("ledger.code"),
+                primary: true,
+                cell: (a) => <span className="font-mono text-xs">{a.code}</span>,
+                sortValue: (a) => a.code,
+              },
               { key: "type", header: t("common.type"), cell: (a) => a.type },
-              { key: "restricted", header: t("ledger.restricted"), cell: (a) => (a.restricted ? <Tag tone="info" dot={false}>{t("common.yes")}</Tag> : "") },
+              {
+                key: "restricted",
+                header: t("ledger.restricted"),
+                cell: (a) =>
+                  a.restricted ? (
+                    <Tag tone="info" dot={false}>
+                      {t("common.yes")}
+                    </Tag>
+                  ) : (
+                    ""
+                  ),
+              },
               { key: "debits", header: t("ledger.debits"), align: "right", cell: (a) => <Sats value={a.debitTotal} /> },
-              { key: "credits", header: t("ledger.credits"), align: "right", cell: (a) => <Sats value={a.creditTotal} /> },
-              { key: "balance", header: t("ledger.balance"), align: "right", cell: (a) => <Sats value={a.balanceSats} className="font-medium text-text" />, sortValue: (a) => a.balanceSats },
+              {
+                key: "credits",
+                header: t("ledger.credits"),
+                align: "right",
+                cell: (a) => <Sats value={a.creditTotal} />,
+              },
+              {
+                key: "balance",
+                header: t("ledger.balance"),
+                align: "right",
+                cell: (a) => <Sats value={a.balanceSats} className="font-medium text-text" />,
+                sortValue: (a) => a.balanceSats,
+              },
             ]}
             pageSize={40}
           />
@@ -228,9 +296,25 @@ export default function LedgerPage() {
             rowKey={(b) => b.accountRef}
             columns={[
               { key: "ref", header: t("wallets.accountRef"), primary: true, cell: (b) => b.accountRef },
-              { key: "available", header: t("status.available"), align: "right", cell: (b) => <Sats value={b.availableSats} />, sortValue: (b) => b.availableSats },
-              { key: "pending", header: t("status.pending"), align: "right", cell: (b) => <Sats value={b.pendingSats} /> },
-              { key: "reserved", header: t("status.reserved"), align: "right", cell: (b) => <Sats value={b.reservedSats} /> },
+              {
+                key: "available",
+                header: t("status.available"),
+                align: "right",
+                cell: (b) => <Sats value={b.availableSats} />,
+                sortValue: (b) => b.availableSats,
+              },
+              {
+                key: "pending",
+                header: t("status.pending"),
+                align: "right",
+                cell: (b) => <Sats value={b.pendingSats} />,
+              },
+              {
+                key: "reserved",
+                header: t("status.reserved"),
+                align: "right",
+                cell: (b) => <Sats value={b.reservedSats} />,
+              },
             ]}
           />
         ) : null}
@@ -242,10 +326,28 @@ export default function LedgerPage() {
             onRowClick={(j) => setJournal(j.id)}
             columns={[
               { key: "time", header: t("ledger.posted"), cell: (j) => formatDateTime(j.postedAt, locale) },
-              { key: "op", header: t("audit.operation"), primary: true, cell: (j) => <span className="font-mono text-[11px]">{j.operationId.slice(0, 40)}</span> },
-              { key: "kind", header: t("ledger.entryKind"), cell: (j) => (j.reversesJournalId ? <Tag tone="pink">{j.entryKind.split(":")[0]}</Tag> : j.entryKind) },
+              {
+                key: "op",
+                header: t("audit.operation"),
+                primary: true,
+                cell: (j) => <span className="font-mono text-[11px]">{j.operationId.slice(0, 40)}</span>,
+              },
+              {
+                key: "kind",
+                header: t("ledger.entryKind"),
+                cell: (j) => (j.reversesJournalId ? <Tag tone="pink">{j.entryKind.split(":")[0]}</Tag> : j.entryKind),
+              },
               { key: "rule", header: t("ledger.rule"), cell: (j) => `${j.ruleName} v${j.ruleVersion}` },
-              { key: "amount", header: t("common.amount"), align: "right", cell: (j) => <Sats value={j.postings.filter((p) => p.direction === "debit").reduce((s, p) => s + p.amountSats, 0)} /> },
+              {
+                key: "amount",
+                header: t("common.amount"),
+                align: "right",
+                cell: (j) => (
+                  <Sats
+                    value={j.postings.filter((p) => p.direction === "debit").reduce((s, p) => s + p.amountSats, 0)}
+                  />
+                ),
+              },
             ]}
             pageSize={30}
           />
@@ -256,7 +358,19 @@ export default function LedgerPage() {
             loading={operations.loading}
             rowKey={(o) => o.id}
             columns={[
-              { key: "op", header: t("audit.operation"), primary: true, cell: (o) => <Link className="font-mono text-[11px] hover:underline" to={`/audit?operation=${encodeURIComponent(o.operationId)}`}>{o.operationId.slice(0, 48)}</Link> },
+              {
+                key: "op",
+                header: t("audit.operation"),
+                primary: true,
+                cell: (o) => (
+                  <Link
+                    className="font-mono text-[11px] hover:underline"
+                    to={`/audit?operation=${encodeURIComponent(o.operationId)}`}
+                  >
+                    {o.operationId.slice(0, 48)}
+                  </Link>
+                ),
+              },
               { key: "kind", header: t("common.kind"), cell: (o) => o.kind },
               { key: "state", header: t("common.status"), cell: (o) => <StatusTag status={o.state} /> },
               { key: "ref", header: t("wallets.accountRef"), cell: (o) => o.accountRef },
@@ -271,14 +385,28 @@ export default function LedgerPage() {
             rows={ledger.data?.financialRules}
             rowKey={(r) => `${r.name}@${r.version}`}
             columns={[
-              { key: "name", header: t("ledger.rule"), primary: true, cell: (r) => <span className="font-mono text-xs">{r.name}</span> },
+              {
+                key: "name",
+                header: t("ledger.rule"),
+                primary: true,
+                cell: (r) => <span className="font-mono text-xs">{r.name}</span>,
+              },
               { key: "version", header: t("ledger.version"), align: "right", cell: (r) => r.version },
-              { key: "current", header: t("ledger.current"), cell: (r) => (r.current ? <StatusTag status="applied" /> : "") },
+              {
+                key: "current",
+                header: t("ledger.current"),
+                cell: (r) => (r.current ? <StatusTag status="applied" /> : ""),
+              },
             ]}
           />
         ) : null}
       </Panel>
-      <Sheet open={!!selectedJournal} onOpenChange={(o) => !o && setJournal(null)} title={selectedJournal?.entryKind ?? ""} description={selectedJournal?.description ?? undefined}>
+      <Sheet
+        open={!!selectedJournal}
+        onOpenChange={(o) => !o && setJournal(null)}
+        title={selectedJournal?.entryKind ?? ""}
+        description={selectedJournal?.description ?? undefined}
+      >
         {selectedJournal ? (
           <div className="flex flex-col gap-4">
             <table className="data-table">
@@ -348,12 +476,24 @@ export default function LedgerPage() {
               </Select>
             )}
           </Field>
-          <Field label={t("ledger.from")} error={form.formState.errors.from ? t("validation.required") : undefined}>{(id) => <Input id={id} {...form.register("from")} />}</Field>
-          {opType === "transfer" ? <Field label={t("ledger.to")}>{(id) => <Input id={id} {...form.register("to")} />}</Field> : null}
-          <Field label={`${t("common.amount")} (sats)`} error={form.formState.errors.amount ? t("validation.positiveInteger") : undefined}>
+          <Field label={t("ledger.from")} error={form.formState.errors.from ? t("validation.required") : undefined}>
+            {(id) => <Input id={id} {...form.register("from")} />}
+          </Field>
+          {opType === "transfer" ? (
+            <Field label={t("ledger.to")}>{(id) => <Input id={id} {...form.register("to")} />}</Field>
+          ) : null}
+          <Field
+            label={`${t("common.amount")} (sats)`}
+            error={form.formState.errors.amount ? t("validation.positiveInteger") : undefined}
+          >
             {(id) => <Input id={id} type="number" min={1} step={1} {...form.register("amount")} />}
           </Field>
-          <Field label={t("ledger.idempotencyKey")} error={form.formState.errors.key ? t("validation.required") : undefined}>{(id) => <Input id={id} {...form.register("key")} />}</Field>
+          <Field
+            label={t("ledger.idempotencyKey")}
+            error={form.formState.errors.key ? t("validation.required") : undefined}
+          >
+            {(id) => <Input id={id} {...form.register("key")} />}
+          </Field>
         </form>
       </Sheet>
     </div>

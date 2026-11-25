@@ -1,12 +1,32 @@
 import { useQuery } from "@apollo/client/react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { Link } from "react-router";
 import { useI18n } from "@/i18n";
 import { useEnvironmentId, useSession } from "@/lib/session";
 import { formatNumber, formatTime, relativeTime } from "@/lib/utils";
 import { Hash, MetricCard, Sats } from "@/components/data/display";
 import { ErrorState, LoadingState, StatusTag } from "@/components/ui/misc";
-import { WIDGET_JOBS, WIDGET_NODES, WIDGET_OVERVIEW, WIDGET_RECONCILIATION, WIDGET_REORGS, WIDGET_TRANSACTIONS, WIDGET_VOLUME } from "./queries";
+import {
+  WIDGET_JOBS,
+  WIDGET_NODES,
+  WIDGET_OVERVIEW,
+  WIDGET_RECONCILIATION,
+  WIDGET_REORGS,
+  WIDGET_TRANSACTIONS,
+  WIDGET_VOLUME,
+} from "./queries";
 
 export interface WidgetProps {
   title: string;
@@ -30,12 +50,25 @@ function Frame({ title, children, action }: { title: string; children: React.Rea
   );
 }
 
-const tooltipStyle = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, color: "var(--text)" };
+const tooltipStyle = {
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
+  borderRadius: 8,
+  fontSize: 12,
+  color: "var(--text)",
+};
 
 export function ConfirmedBalanceWidget({ title, refreshMs }: WidgetProps) {
   const { data } = useOverview(refreshMs);
   const { t } = useI18n();
-  return <MetricCard label={title} value={<Sats value={data?.overview.confirmedSats} />} hint={`${data?.overview.utxoCount ?? 0} ${t("wallets.utxos")}`} glow="green" />;
+  return (
+    <MetricCard
+      label={title}
+      value={<Sats value={data?.overview.confirmedSats} />}
+      hint={`${data?.overview.utxoCount ?? 0} ${t("wallets.utxos")}`}
+      glow="green"
+    />
+  );
 }
 
 export function PendingBalanceWidget({ title, refreshMs }: WidgetProps) {
@@ -59,7 +92,14 @@ export function HeightWidget({ title, refreshMs }: WidgetProps) {
 export function MempoolWidget({ title, refreshMs }: WidgetProps) {
   const { data } = useOverview(refreshMs);
   const { locale, t } = useI18n();
-  return <MetricCard label={title} value={formatNumber(data?.overview.mempoolSize, locale)} hint={t("widgets.pendingTx")} glow="violet" />;
+  return (
+    <MetricCard
+      label={title}
+      value={formatNumber(data?.overview.mempoolSize, locale)}
+      hint={t("widgets.pendingTx")}
+      glow="violet"
+    />
+  );
 }
 
 export function OpenDiscrepanciesWidget({ title, refreshMs }: WidgetProps) {
@@ -76,7 +116,10 @@ export function OpenDiscrepanciesWidget({ title, refreshMs }: WidgetProps) {
 export function NodesWidget({ title, refreshMs }: WidgetProps) {
   const environmentId = useEnvironmentId();
   const { t, locale } = useI18n();
-  const { data, loading, error, refetch } = useQuery(WIDGET_NODES, { variables: { environmentId }, pollInterval: refreshMs });
+  const { data, loading, error, refetch } = useQuery(WIDGET_NODES, {
+    variables: { environmentId },
+    pollInterval: refreshMs,
+  });
   return (
     <Frame title={title}>
       {error && !data ? <ErrorState onRetry={() => refetch()} /> : null}
@@ -90,7 +133,8 @@ export function NodesWidget({ title, refreshMs }: WidgetProps) {
                 {n.isReference ? <span className="ml-2 text-[11px] text-primary">{t("nodes.reference")}</span> : null}
               </span>
               <span className="text-[11px] text-text-muted">
-                {t("nodes.height")} {formatNumber(n.latest?.height, locale)} · {n.latest?.rpcLatencyMs ?? "-"} ms · {n.latest?.peers ?? 0} {t("nodes.peers").toLowerCase()}
+                {t("nodes.height")} {formatNumber(n.latest?.height, locale)} · {n.latest?.rpcLatencyMs ?? "-"} ms ·{" "}
+                {n.latest?.peers ?? 0} {t("nodes.peers").toLowerCase()}
               </span>
             </div>
             <StatusTag status={n.latest?.reachable ? "healthy" : "unavailable"} />
@@ -130,15 +174,28 @@ export function VolumeWidget({ title, refreshMs }: WidgetProps) {
   const environmentId = useEnvironmentId();
   const { locale, t } = useI18n();
   const { data } = useQuery(WIDGET_VOLUME, { variables: { environmentId }, pollInterval: refreshMs ?? 60_000 });
-  const points = (data?.transactionVolume ?? []).map((b) => ({ time: formatTime(b.bucket, locale).slice(0, 5), count: b.count }));
+  const points = (data?.transactionVolume ?? []).map((b) => ({
+    time: formatTime(b.bucket, locale).slice(0, 5),
+    count: b.count,
+  }));
   return (
     <Frame title={title} action={<span className="text-[11px] text-text-muted">{t("widgets.hours24")}</span>}>
       <div className="h-full min-h-[140px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={points} margin={{ top: 8, right: 4, left: -24, bottom: 0 }}>
             <CartesianGrid stroke="var(--border)" vertical={false} />
-            <XAxis dataKey="time" tick={{ fontSize: 11, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} />
-            <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} />
+            <XAxis
+              dataKey="time"
+              tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              allowDecimals={false}
+              tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+              tickLine={false}
+              axisLine={false}
+            />
             <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "var(--surface-2)" }} />
             <Bar dataKey="count" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
           </BarChart>
@@ -159,7 +216,9 @@ export function ReconciliationSummaryWidget({ title, refreshMs }: WidgetProps) {
         <p className="py-6 text-center text-[13px] text-text-muted">{t("widgets.noRuns")}</p>
       ) : (
         <Link to={`/reconciliation/runs/${run.id}`} className="flex flex-col gap-3 py-2">
-          <span className="text-[32px] font-semibold leading-none">{rate === null || rate === undefined ? "-" : `${Math.round(rate * 100)}%`}</span>
+          <span className="text-[32px] font-semibold leading-none">
+            {rate === null || rate === undefined ? "-" : `${Math.round(rate * 100)}%`}
+          </span>
           <span className="text-[12px] text-text-muted">{t("widgets.matchRate")}</span>
           <div className="flex flex-wrap items-center gap-2 text-[12px] text-text-secondary">
             <StatusTag status={run.status} />
@@ -178,17 +237,29 @@ export function ReconciliationHistoryWidget({ title, refreshMs }: WidgetProps) {
   const environmentId = useEnvironmentId();
   const { locale } = useI18n();
   const { data } = useQuery(WIDGET_RECONCILIATION, { variables: { environmentId }, pollInterval: refreshMs });
-  const points = [...(data?.reconciliationRuns ?? [])]
-    .reverse()
-    .map((r) => ({ time: formatTime(r.insertedAt, locale).slice(0, 5), rate: Math.round(Number(r.summary?.match_rate ?? 0) * 100), discrepancies: Number(r.summary?.by_state?.discrepancy ?? 0) }));
+  const points = [...(data?.reconciliationRuns ?? [])].reverse().map((r) => ({
+    time: formatTime(r.insertedAt, locale).slice(0, 5),
+    rate: Math.round(Number(r.summary?.match_rate ?? 0) * 100),
+    discrepancies: Number(r.summary?.by_state?.discrepancy ?? 0),
+  }));
   return (
     <Frame title={title}>
       <div className="h-full min-h-[140px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={points} margin={{ top: 8, right: 4, left: -24, bottom: 0 }}>
             <CartesianGrid stroke="var(--border)" vertical={false} />
-            <XAxis dataKey="time" tick={{ fontSize: 11, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} />
-            <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} />
+            <XAxis
+              dataKey="time"
+              tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              domain={[0, 100]}
+              tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+              tickLine={false}
+              axisLine={false}
+            />
             <Tooltip contentStyle={tooltipStyle} />
             <Area type="monotone" dataKey="rate" stroke="var(--chart-4)" fill="var(--chart-4)" fillOpacity={0.15} />
           </AreaChart>
@@ -198,14 +269,23 @@ export function ReconciliationHistoryWidget({ title, refreshMs }: WidgetProps) {
   );
 }
 
-function ExperimentList({ items, empty }: { items: { id: string; scenarioName: string; status: string; startedAt?: string | null; finishedAt?: string | null }[]; empty: string }) {
+function ExperimentList({
+  items,
+  empty,
+}: {
+  items: { id: string; scenarioName: string; status: string; startedAt?: string | null; finishedAt?: string | null }[];
+  empty: string;
+}) {
   const { locale } = useI18n();
   if (!items.length) return <p className="py-6 text-center text-[13px] text-text-muted">{empty}</p>;
   return (
     <ul className="flex flex-col divide-y divide-border">
       {items.map((r) => (
         <li key={r.id} className="flex items-center justify-between gap-3 py-2 text-[12px]">
-          <Link to={`/engineering/experiments/runs/${r.id}`} className="min-w-0 truncate font-medium text-text hover:underline">
+          <Link
+            to={`/engineering/experiments/runs/${r.id}`}
+            className="min-w-0 truncate font-medium text-text hover:underline"
+          >
             {r.scenarioName}
           </Link>
           <span className="flex items-center gap-2">
@@ -297,11 +377,23 @@ export function LatencyWidget({ title, refreshMs }: WidgetProps) {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={points} margin={{ top: 8, right: 4, left: -24, bottom: 0 }}>
             <CartesianGrid stroke="var(--border)" vertical={false} />
-            <XAxis dataKey="time" tick={{ fontSize: 11, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} />
+            <XAxis
+              dataKey="time"
+              tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+              tickLine={false}
+              axisLine={false}
+            />
             <YAxis tick={{ fontSize: 11, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} unit="ms" />
             <Tooltip contentStyle={tooltipStyle} />
             {(data?.nodes ?? []).map((n, i) => (
-              <Line key={n.integration.id} type="monotone" dataKey={n.integration.name} stroke={colors[i % colors.length]} dot={false} strokeWidth={2} />
+              <Line
+                key={n.integration.id}
+                type="monotone"
+                dataKey={n.integration.name}
+                stroke={colors[i % colors.length]}
+                dot={false}
+                strokeWidth={2}
+              />
             ))}
           </LineChart>
         </ResponsiveContainer>
@@ -322,7 +414,8 @@ export function ReorgsWidget({ title, refreshMs }: WidgetProps) {
         {reorgs.map((r) => (
           <li key={r.id} className="flex items-center justify-between gap-3 py-2 text-[12px]">
             <span>
-              {t("blockchain.depth")} <strong className="text-text">{String(r.payload?.depth ?? "?")}</strong> · {t("blockchain.ancestor")} {String(r.payload?.ancestor_height ?? "-")}
+              {t("blockchain.depth")} <strong className="text-text">{String(r.payload?.depth ?? "?")}</strong> ·{" "}
+              {t("blockchain.ancestor")} {String(r.payload?.ancestor_height ?? "-")}
             </span>
             <span className="text-[11px] text-text-muted">{relativeTime(r.observedAt, locale)}</span>
           </li>

@@ -8,7 +8,18 @@ import { useEnvironmentId, useSession } from "@/lib/session";
 import { formatNumber, formatTime, relativeTime } from "@/lib/utils";
 import { Hash, Timeline } from "@/components/data/display";
 import { Button } from "@/components/ui/button";
-import { EmptyState, ErrorState, KV, LoadingState, Notice, PageHeader, Panel, PanelHeader, StatusTag, Tag } from "@/components/ui/misc";
+import {
+  EmptyState,
+  ErrorState,
+  KV,
+  LoadingState,
+  Notice,
+  PageHeader,
+  Panel,
+  PanelHeader,
+  StatusTag,
+  Tag,
+} from "@/components/ui/misc";
 
 const NODES = graphql(`
   query Nodes($environmentId: ID!) {
@@ -122,7 +133,12 @@ export default function NodesPage() {
           </div>
           {nodes.map((n) => (
             <div key={n.integration.id} className="flex items-center gap-4">
-              <span aria-hidden className={n.latest?.reachable ? "h-px w-10 bg-success" : "h-px w-10 border-t border-dashed border-danger"} />
+              <span
+                aria-hidden
+                className={
+                  n.latest?.reachable ? "h-px w-10 bg-success" : "h-px w-10 border-t border-dashed border-danger"
+                }
+              />
               <div className="flex flex-col items-center gap-1 rounded-lg border border-border px-4 py-3 text-center">
                 <span className="text-sm font-semibold">{n.integration.name}</span>
                 <StatusTag status={n.latest?.reachable ? "healthy" : "unavailable"} />
@@ -136,8 +152,16 @@ export default function NodesPage() {
       </Panel>
       <div className="grid gap-5 xl:grid-cols-2">
         {nodes.map((n) => {
-          const synced = n.latest?.height !== null && n.latest?.height !== undefined && tip?.height === n.latest.height && tip?.hash === n.latest.bestHash;
-          const history = [...n.history].reverse().map((h) => ({ time: formatTime(h.observedAt, locale).slice(0, 5), latency: h.rpcLatencyMs ?? null, height: h.height }));
+          const synced =
+            n.latest?.height !== null &&
+            n.latest?.height !== undefined &&
+            tip?.height === n.latest.height &&
+            tip?.hash === n.latest.bestHash;
+          const history = [...n.history].reverse().map((h) => ({
+            time: formatTime(h.observedAt, locale).slice(0, 5),
+            latency: h.rpcLatencyMs ?? null,
+            height: h.height,
+          }));
           return (
             <Panel key={n.integration.id}>
               <PanelHeader
@@ -156,7 +180,14 @@ export default function NodesPage() {
                 <KV label={t("nodes.bestHash")} value={<Hash value={n.latest?.bestHash} />} />
                 <KV label={t("nodes.peers")} value={n.latest?.peers ?? "-"} />
                 <KV label={t("nodes.mempool")} value={n.latest?.mempoolSize ?? "-"} />
-                <KV label={t("nodes.latency")} value={n.latest?.rpcLatencyMs !== null && n.latest?.rpcLatencyMs !== undefined ? `${n.latest.rpcLatencyMs} ms` : "-"} />
+                <KV
+                  label={t("nodes.latency")}
+                  value={
+                    n.latest?.rpcLatencyMs !== null && n.latest?.rpcLatencyMs !== undefined
+                      ? `${n.latest.rpcLatencyMs} ms`
+                      : "-"
+                  }
+                />
                 <KV label={t("nodes.lastSeen")} value={relativeTime(n.latest?.observedAt, locale)} />
                 <KV label="Chain" value={n.latest?.chain ?? "-"} />
                 <KV label={`${t("nodes.zmq")} ${t("nodes.gaps")}`} value={n.zmq?.gapsTotal ?? 0} />
@@ -167,10 +198,27 @@ export default function NodesPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={history} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
                     <CartesianGrid stroke="var(--border)" vertical={false} />
-                    <XAxis dataKey="time" tick={{ fontSize: 11, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} unit="ms" />
+                    <XAxis
+                      dataKey="time"
+                      tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+                      tickLine={false}
+                      axisLine={false}
+                      unit="ms"
+                    />
                     <Tooltip contentStyle={tooltipStyle} />
-                    <Line type="monotone" dataKey="latency" stroke="var(--chart-1)" dot={false} strokeWidth={2} connectNulls={false} />
+                    <Line
+                      type="monotone"
+                      dataKey="latency"
+                      stroke="var(--chart-1)"
+                      dot={false}
+                      strokeWidth={2}
+                      connectNulls={false}
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </div>

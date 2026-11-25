@@ -85,11 +85,16 @@ export default function AuditPage() {
   const environmentId = useEnvironmentId();
   const { can } = useSession();
   const [params, setParams] = useSearchParams();
-  const [tab, setTab] = useState<"timeline" | "log">(params.get("operation") || !can("audit.read") ? "timeline" : "timeline");
+  const [tab, setTab] = useState<"timeline" | "log">(
+    params.get("operation") || !can("audit.read") ? "timeline" : "timeline",
+  );
   const [operation, setOperation] = useState(params.get("operation") ?? "");
   const [load, timeline] = useLazyQuery(TIMELINE);
   const [actionFilter, setActionFilter] = useState("");
-  const log = useQuery(AUDIT, { variables: { environmentId, action: actionFilter || null }, skip: !can("audit.read") || tab !== "log" });
+  const log = useQuery(AUDIT, {
+    variables: { environmentId, action: actionFilter || null },
+    skip: !can("audit.read") || tab !== "log",
+  });
   const [selected, setSelected] = useState<{ action: string; changes: unknown } | null>(null);
 
   useEffect(() => {
@@ -105,7 +110,11 @@ export default function AuditPage() {
       title: e.eventType,
       time: e.observedAt,
       tone: EVENT_TONES[e.eventType] ?? ("default" as const),
-      description: e.payload?.reason ? String(e.payload.reason) : e.payload?.block_height ? `${t("transactions.block")} ${e.payload.block_height}` : null,
+      description: e.payload?.reason
+        ? String(e.payload.reason)
+        : e.payload?.block_height
+          ? `${t("transactions.block")} ${e.payload.block_height}`
+          : null,
     })),
     ...(tl?.journals ?? []).map((j) => ({
       id: `j-${j.id}`,
@@ -153,7 +162,13 @@ export default function AuditPage() {
               if (operation.trim()) setParams({ operation: operation.trim() });
             }}
           >
-            <Input aria-label={t("audit.operation")} placeholder={t("audit.operationPlaceholder")} value={operation} onChange={(e) => setOperation(e.target.value)} className="min-w-[280px] flex-1 font-mono text-xs" />
+            <Input
+              aria-label={t("audit.operation")}
+              placeholder={t("audit.operationPlaceholder")}
+              value={operation}
+              onChange={(e) => setOperation(e.target.value)}
+              className="min-w-[280px] flex-1 font-mono text-xs"
+            />
             <Button type="submit" variant="primary">
               <Search /> {t("audit.lookup")}
             </Button>
@@ -174,7 +189,15 @@ export default function AuditPage() {
         <Panel>
           <PanelHeader
             title={t("audit.log")}
-            actions={<Input aria-label={t("audit.action")} placeholder={t("audit.action")} value={actionFilter} onChange={(e) => setActionFilter(e.target.value)} className="w-56" />}
+            actions={
+              <Input
+                aria-label={t("audit.action")}
+                placeholder={t("audit.action")}
+                value={actionFilter}
+                onChange={(e) => setActionFilter(e.target.value)}
+                className="w-56"
+              />
+            }
           />
           <div className="px-5 pb-3">
             <Notice tone="info">
@@ -190,8 +213,17 @@ export default function AuditPage() {
             columns={[
               { key: "time", header: t("common.time"), cell: (r) => formatDateTime(r.insertedAt, locale) },
               { key: "actor", header: t("audit.actor"), cell: (r) => r.actorEmail ?? "system" },
-              { key: "action", header: t("audit.action"), primary: true, cell: (r) => <span className="font-mono text-xs">{r.action}</span> },
-              { key: "resource", header: t("audit.resource"), cell: (r) => `${r.resourceType ?? "-"} ${r.resourceId ? r.resourceId.slice(0, 12) : ""}` },
+              {
+                key: "action",
+                header: t("audit.action"),
+                primary: true,
+                cell: (r) => <span className="font-mono text-xs">{r.action}</span>,
+              },
+              {
+                key: "resource",
+                header: t("audit.resource"),
+                cell: (r) => `${r.resourceType ?? "-"} ${r.resourceId ? r.resourceId.slice(0, 12) : ""}`,
+              },
               { key: "ip", header: "IP", cell: (r) => r.ip ?? "-" },
             ]}
             pageSize={30}

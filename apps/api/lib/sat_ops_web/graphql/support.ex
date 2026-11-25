@@ -1,7 +1,7 @@
 defmodule SatOpsWeb.GraphQL.Scalars do
   use Absinthe.Schema.Notation
 
-  scalar :json, name: "JSON" do
+  scalar :json, name: "JSON", open_ended: true do
     serialize &stringify_keys/1
     parse &parse_json/1
   end

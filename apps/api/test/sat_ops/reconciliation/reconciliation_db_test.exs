@@ -15,6 +15,15 @@ defmodule SatOps.ReconciliationDbTest do
     assert is_list(done.sources) and hd(done.sources)["name"] == "native-ledger"
   end
 
+  test "internal transfers in the native ledger do not produce false balance mismatches", %{env: env} do
+    fund!(env, "alice", 5_000)
+    post_transfer!(env, "alice", "bob", 1_200, "t1")
+    {:ok, run} = Reconciliation.enqueue(env.id, "test")
+    assert {:ok, %{status: "completed"}} = Reconciliation.execute(run.id)
+    kinds = Reconciliation.list_discrepancies(env.id, states: ["open"]) |> Enum.map(& &1.kind)
+    refute "balance_mismatch" in kinds
+  end
+
   test "a missing required source yields an incomplete run and a source_unavailable discrepancy", %{env: env} do
     {:ok, _} =
       SatOps.Configuration.apply_document(

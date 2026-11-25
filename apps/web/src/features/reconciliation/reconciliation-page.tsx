@@ -29,7 +29,9 @@ export default function ReconciliationPage() {
   const tab = (params.get("tab") as "discrepancies" | "runs" | null) ?? "discrepancies";
   const [states, setStates] = useState<"active" | "all">("active");
   const runs = useQuery(RUNS, { variables: { environmentId } });
-  const discrepancies = useQuery(DISCREPANCIES, { variables: { environmentId, states: states === "active" ? ["open", "investigating"] : null } });
+  const discrepancies = useQuery(DISCREPANCIES, {
+    variables: { environmentId, states: states === "active" ? ["open", "investigating"] : null },
+  });
   const [run, runState] = useMutation(RUN_RECONCILIATION);
   const kindLabel = useKindLabel();
 
@@ -92,14 +94,39 @@ export default function ReconciliationPage() {
             onRowClick={(d) => navigate(`/reconciliation/discrepancies/${d.id}`)}
             empty={{ title: t("discrepancies.empty"), description: t("discrepancies.emptyHint") }}
             columns={[
-              { key: "kind", header: t("discrepancies.kind"), primary: true, cell: (d) => kindLabel(d.kind), sortValue: (d) => d.kind },
-              { key: "severity", header: t("discrepancies.severity"), cell: (d) => <Tag tone={d.severity === "critical" ? "danger" : d.severity === "high" ? "warning" : "neutral"}>{d.severity}</Tag> },
+              {
+                key: "kind",
+                header: t("discrepancies.kind"),
+                primary: true,
+                cell: (d) => kindLabel(d.kind),
+                sortValue: (d) => d.kind,
+              },
+              {
+                key: "severity",
+                header: t("discrepancies.severity"),
+                cell: (d) => (
+                  <Tag tone={d.severity === "critical" ? "danger" : d.severity === "high" ? "warning" : "neutral"}>
+                    {d.severity}
+                  </Tag>
+                ),
+              },
               { key: "source", header: t("reconciliation.source"), cell: (d) => d.source ?? "-" },
               { key: "tx", header: t("transactions.txid"), cell: (d) => <Hash value={d.txid} copy={false} /> },
               { key: "amount", header: t("common.amount"), align: "right", cell: (d) => <Sats value={d.amountSats} /> },
               { key: "state", header: t("common.status"), cell: (d) => <StatusTag status={d.state} /> },
-              { key: "seen", header: t("discrepancies.occurrences"), align: "right", cell: (d) => d.occurrences, sortValue: (d) => d.occurrences },
-              { key: "updated", header: t("common.updated"), cell: (d) => relativeTime(d.updatedAt, locale), sortValue: (d) => d.updatedAt },
+              {
+                key: "seen",
+                header: t("discrepancies.occurrences"),
+                align: "right",
+                cell: (d) => d.occurrences,
+                sortValue: (d) => d.occurrences,
+              },
+              {
+                key: "updated",
+                header: t("common.updated"),
+                cell: (d) => relativeTime(d.updatedAt, locale),
+                sortValue: (d) => d.updatedAt,
+              },
             ]}
             pageSize={25}
           />
@@ -112,17 +139,40 @@ export default function ReconciliationPage() {
             onRowClick={(r) => navigate(`/reconciliation/runs/${r.id}`)}
             empty={{ title: t("reconciliation.empty"), description: t("reconciliation.emptyHint") }}
             columns={[
-              { key: "started", header: t("reconciliation.started"), primary: true, cell: (r) => formatDateTime(r.startedAt ?? r.insertedAt, locale), sortValue: (r) => r.insertedAt },
+              {
+                key: "started",
+                header: t("reconciliation.started"),
+                primary: true,
+                cell: (r) => formatDateTime(r.startedAt ?? r.insertedAt, locale),
+                sortValue: (r) => r.insertedAt,
+              },
               { key: "status", header: t("common.status"), cell: (r) => <StatusTag status={r.status} /> },
-              { key: "completeness", header: t("reconciliation.completeness"), cell: (r) => <StatusTag status={r.completeness} /> },
+              {
+                key: "completeness",
+                header: t("reconciliation.completeness"),
+                cell: (r) => <StatusTag status={r.completeness} />,
+              },
               {
                 key: "rate",
                 header: t("reconciliation.matchRate"),
                 align: "right",
-                cell: (r) => (r.summary?.match_rate === null || r.summary?.match_rate === undefined ? "-" : `${Math.round(Number(r.summary.match_rate) * 100)}%`),
+                cell: (r) =>
+                  r.summary?.match_rate === null || r.summary?.match_rate === undefined
+                    ? "-"
+                    : `${Math.round(Number(r.summary.match_rate) * 100)}%`,
               },
-              { key: "disc", header: t("status.discrepancy"), align: "right", cell: (r) => Number(r.summary?.by_state?.discrepancy ?? 0) },
-              { key: "ref", header: t("reconciliation.reference"), align: "right", cell: (r) => r.referenceHeight ?? "-" },
+              {
+                key: "disc",
+                header: t("status.discrepancy"),
+                align: "right",
+                cell: (r) => Number(r.summary?.by_state?.discrepancy ?? 0),
+              },
+              {
+                key: "ref",
+                header: t("reconciliation.reference"),
+                align: "right",
+                cell: (r) => r.referenceHeight ?? "-",
+              },
               { key: "trigger", header: t("reconciliation.trigger"), cell: (r) => r.trigger },
               { key: "policy", header: t("reconciliation.policy"), cell: (r) => `${r.policyName} v${r.policyVersion}` },
             ]}

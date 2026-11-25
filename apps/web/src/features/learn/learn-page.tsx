@@ -7,9 +7,19 @@ export default function LearnPage() {
   const { t } = useI18n();
   const cards = [
     { icon: Layers3, title: t("learn.confirmationsTitle"), body: t("learn.confirmations"), to: "/transactions" },
-    { icon: GitCompareArrows, title: t("learn.reconciliationTitle"), body: t("learn.reconciliation"), to: "/reconciliation" },
+    {
+      icon: GitCompareArrows,
+      title: t("learn.reconciliationTitle"),
+      body: t("learn.reconciliation"),
+      to: "/reconciliation",
+    },
     { icon: BookOpenCheck, title: t("learn.ledgerTitle"), body: t("learn.ledger"), to: "/engineering/ledger" },
-    { icon: FlaskConical, title: t("learn.experimentsTitle"), body: t("learn.experiments"), to: "/engineering/experiments" },
+    {
+      icon: FlaskConical,
+      title: t("learn.experimentsTitle"),
+      body: t("learn.experiments"),
+      to: "/engineering/experiments",
+    },
   ];
   return (
     <div className="flex flex-col gap-5">

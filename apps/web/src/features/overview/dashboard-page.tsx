@@ -104,10 +104,17 @@ export default function DashboardPage({ workspace }: { workspace: "customer" | "
 
   const persist = async (next: DashboardSpec) => {
     if (!dashboard) return;
-    await save({ variables: { name: dashboard.name, spec: next, lockVersion: dashboard.shared ? null : dashboard.lockVersion } });
-    await refetch();
-    setDraft(null);
-    toast.success(t("overview.saved"));
+    try {
+      await save({
+        variables: { name: dashboard.name, spec: next, lockVersion: dashboard.shared ? null : dashboard.lockVersion },
+      });
+      await refetch();
+      setDraft(null);
+      toast.success(t("overview.saved"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("common.error"));
+      throw e;
+    }
   };
 
   if (loading && !data) return <LoadingState rows={8} />;
@@ -141,7 +148,22 @@ export default function DashboardPage({ workspace }: { workspace: "customer" | "
     const meta = typeMeta.get(type);
     const id = `${type.replace(/[^a-z]/g, "-")}-${Math.random().toString(36).slice(2, 6)}`;
     const maxY = Math.max(0, ...widgets.map((w) => w.position.y + w.position.height));
-    update((s) => ({ ...s, widgets: [...s.widgets, { id, type, position: { x: 0, y: maxY, width: Math.max(meta?.minWidth ?? 3, 3), height: Math.max(meta?.minHeight ?? 2, 2) } }] }));
+    update((s) => ({
+      ...s,
+      widgets: [
+        ...s.widgets,
+        {
+          id,
+          type,
+          position: {
+            x: 0,
+            y: maxY,
+            width: Math.max(meta?.minWidth ?? 3, 3),
+            height: Math.max(meta?.minHeight ?? 2, 2),
+          },
+        },
+      ],
+    }));
   };
 
   const exportYaml = () => {
@@ -214,8 +236,12 @@ export default function DashboardPage({ workspace }: { workspace: "customer" | "
                   variant="primary"
                   loading={saveState.loading}
                   onClick={async () => {
-                    if (draft) await persist(draft);
-                    setEditing(false);
+                    try {
+                      if (draft) await persist(draft);
+                      setEditing(false);
+                    } catch {
+                      return;
+                    }
                   }}
                 >
                   {t("overview.done")}
@@ -249,7 +275,12 @@ export default function DashboardPage({ workspace }: { workspace: "customer" | "
               {Component ? <Component title={title} refreshMs={parseRefresh(w.refreshInterval)} /> : null}
               {editing ? (
                 <div className="no-drag absolute right-2 top-2 z-10 flex gap-1">
-                  <Button size="icon-sm" variant="secondary" aria-label={t("overview.widgetSettings")} onClick={() => setSettings(w)}>
+                  <Button
+                    size="icon-sm"
+                    variant="secondary"
+                    aria-label={t("overview.widgetSettings")}
+                    onClick={() => setSettings(w)}
+                  >
                     <Settings2 />
                   </Button>
                   <Button
@@ -277,11 +308,21 @@ export default function DashboardPage({ workspace }: { workspace: "customer" | "
             }}
           >
             <Field label={t("overview.title_")}>
-              {(id) => <Input id={id} value={settings.title ?? ""} onChange={(e) => setSettings({ ...settings, title: e.target.value || undefined })} />}
+              {(id) => (
+                <Input
+                  id={id}
+                  value={settings.title ?? ""}
+                  onChange={(e) => setSettings({ ...settings, title: e.target.value || undefined })}
+                />
+              )}
             </Field>
             <Field label={t("overview.refreshInterval")}>
               {(id) => (
-                <Select id={id} value={settings.refreshInterval ?? ""} onChange={(e) => setSettings({ ...settings, refreshInterval: e.target.value || undefined })}>
+                <Select
+                  id={id}
+                  value={settings.refreshInterval ?? ""}
+                  onChange={(e) => setSettings({ ...settings, refreshInterval: e.target.value || undefined })}
+                >
                   <option value="">Realtime</option>
                   <option value="15s">15s</option>
                   <option value="30s">30s</option>

@@ -268,7 +268,7 @@ defmodule SatOps.Blockchain do
         group_by: fragment("date_trunc('hour', ?)", t.first_seen_at),
         order_by: fragment("date_trunc('hour', ?)", t.first_seen_at),
         select: %{
-          bucket: fragment("date_trunc('hour', ?)", t.first_seen_at),
+          bucket: type(fragment("date_trunc('hour', ?)", t.first_seen_at), :utc_datetime_usec),
           count: count(t.id, :distinct),
           value_sats: sum(o.value_sats)
         }

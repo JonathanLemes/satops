@@ -22,7 +22,11 @@ const sizes: Record<Size, string> = {
   "icon-sm": "size-7 justify-center",
 };
 
-export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size; loading?: boolean };
+export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: Variant;
+  size?: Size;
+  loading?: boolean;
+};
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   { variant = "outline", size = "md", loading, className, children, disabled, type = "button", ...props },
@@ -49,5 +53,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
 });
 
 export function Spinner({ className }: { className?: string }) {
-  return <span aria-hidden className={cn("inline-block size-4 animate-spin rounded-full border-2 border-current border-r-transparent", className)} />;
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "inline-block size-4 animate-spin rounded-full border-2 border-current border-r-transparent",
+        className,
+      )}
+    />
+  );
 }

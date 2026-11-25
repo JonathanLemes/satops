@@ -4,7 +4,10 @@ import { schemas, type ResourceKind } from "@satops/config-schemas";
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 addFormats(ajv);
-const validators = Object.fromEntries(Object.entries(schemas).map(([k, s]) => [k, ajv.compile(s)])) as Record<ResourceKind, ReturnType<typeof ajv.compile>>;
+const validators = Object.fromEntries(Object.entries(schemas).map(([k, s]) => [k, ajv.compile(s)])) as Record<
+  ResourceKind,
+  ReturnType<typeof ajv.compile>
+>;
 
 export const KINDS = Object.keys(schemas) as ResourceKind[];
 
@@ -40,7 +43,10 @@ export function validateLocal(doc: unknown): Issue[] {
   if (validate(doc)) return [];
   return (validate.errors ?? []).map((e: ErrorObject) => ({
     path: e.instancePath || "/",
-    message: e.keyword === "additionalProperties" ? `unknown field "${String(e.params.additionalProperty)}"` : (e.message ?? "invalid"),
+    message:
+      e.keyword === "additionalProperties"
+        ? `unknown field "${String(e.params.additionalProperty)}"`
+        : (e.message ?? "invalid"),
   }));
 }
 
@@ -57,14 +63,47 @@ export function knownPaths(schema: JsonSchema | undefined, value: unknown, prefi
 export function template(kind: string, environment: string): Record<string, unknown> {
   const base = { apiVersion: "satops.io/v1alpha1", kind, metadata: { name: "" } };
   const specs: Record<string, unknown> = {
-    Environment: { network: { type: "regtest", nodes: 2 }, ledger: { asset: "BTC", confirmationPolicy: { requiredConfirmations: 3 } }, safety: { allowMainnet: false, allowPublicPeers: false } },
+    Environment: {
+      network: { type: "regtest", nodes: 2 },
+      ledger: { asset: "BTC", confirmationPolicy: { requiredConfirmations: 3 } },
+      safety: { allowMainnet: false, allowPublicPeers: false },
+    },
     BitcoinNetwork: { environmentRef: environment, type: "regtest", referencePolicy: "mostWork", nodes: [] },
-    BitcoinIntegration: { environmentRef: environment, network: "regtest", rpc: { host: "", port: 18443, secretRef: "bitcoin-rpc" }, zmq: { enabled: true, endpoint: "" }, monitoring: { reconcileInterval: "30s", timeout: "5s" } },
-    FinancialIntegration: { environmentRef: environment, type: "generic_rest", connection: { baseUrl: "", timeout: "5s" }, mapping: { recordsPath: "/records" } },
-    ReconciliationPolicy: { environmentRef: environment, sources: ["native-ledger"], requiredSources: ["native-ledger"], settlementDelaySeconds: 600, matching: "deterministic" },
-    Experiment: { title: "", description: "", guarantee: "", steps: [{ id: "fund", phase: "prepare", action: "bitcoin.ensure_funds", params: { minimumSats: 100000000 } }], assertions: [{ type: "ledger.is_balanced" }] },
+    BitcoinIntegration: {
+      environmentRef: environment,
+      network: "regtest",
+      rpc: { host: "", port: 18443, secretRef: "bitcoin-rpc" },
+      zmq: { enabled: true, endpoint: "" },
+      monitoring: { reconcileInterval: "30s", timeout: "5s" },
+    },
+    FinancialIntegration: {
+      environmentRef: environment,
+      type: "generic_rest",
+      connection: { baseUrl: "", timeout: "5s" },
+      mapping: { recordsPath: "/records" },
+    },
+    ReconciliationPolicy: {
+      environmentRef: environment,
+      sources: ["native-ledger"],
+      requiredSources: ["native-ledger"],
+      settlementDelaySeconds: 600,
+      matching: "deterministic",
+    },
+    Experiment: {
+      title: "",
+      description: "",
+      guarantee: "",
+      steps: [{ id: "fund", phase: "prepare", action: "bitcoin.ensure_funds", params: { minimumSats: 100000000 } }],
+      assertions: [{ type: "ledger.is_balanced" }],
+    },
     Dashboard: { title: "", workspace: "engineering", layout: { columns: 12 }, widgets: [] },
-    AlertPolicy: { environmentRef: environment, events: ["node.disconnected"], severity: "warning", cooldown: "5m", destinations: [{ type: "internal" }] },
+    AlertPolicy: {
+      environmentRef: environment,
+      events: ["node.disconnected"],
+      severity: "warning",
+      cooldown: "5m",
+      destinations: [{ type: "internal" }],
+    },
   };
   return { ...base, spec: specs[kind] ?? {} };
 }

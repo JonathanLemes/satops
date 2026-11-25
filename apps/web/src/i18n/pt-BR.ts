@@ -1,7 +1,11 @@
 import type { Dictionary } from "./en";
 
 export const ptBR: Dictionary = {
-  app: { name: "SatOps", tagline: "Observabilidade Bitcoin, conciliação e testes de resiliência", sandbox: "Sandbox regtest: apenas dados sintéticos" },
+  app: {
+    name: "SatOps",
+    tagline: "Observabilidade Bitcoin, conciliação e testes de resiliência",
+    sandbox: "Sandbox regtest: apenas dados sintéticos",
+  },
   common: {
     loading: "Carregando…",
     retry: "Tentar de novo",
@@ -99,7 +103,8 @@ export const ptBR: Dictionary = {
     submit: "Entrar",
     invalid: "E-mail ou senha inválidos.",
     rateLimited: "Muitas tentativas. Tente de novo em um minuto.",
-    sandboxNote: "Esta instância só se comunica com Bitcoin Core em modo regtest e dados sintéticos. Nunca informe credenciais de carteiras reais nem seed phrases.",
+    sandboxNote:
+      "Esta instância só se comunica com Bitcoin Core em modo regtest e dados sintéticos. Nunca informe credenciais de carteiras reais nem seed phrases.",
   },
   status: {
     observed: "Observada",
@@ -227,10 +232,12 @@ export const ptBR: Dictionary = {
     kindAddresses: "Endereços individuais",
     kindDescriptor: "Output descriptor",
     descriptor: "Output descriptor público",
-    descriptorHint: "Somente descriptors públicos (por exemplo wpkh(tpub…/0/*)). Chaves privadas são sempre rejeitadas.",
+    descriptorHint:
+      "Somente descriptors públicos (por exemplo wpkh(tpub…/0/*)). Chaves privadas são sempre rejeitadas.",
     derivationLimit: "Limite de derivação",
     addressesHint: "Um endereço regtest por linha.",
-    sensitive: "Endereços e xpubs revelam atividade financeira mesmo sem permitir gastar fundos. Trate-os como dados sensíveis.",
+    sensitive:
+      "Endereços e xpubs revelam atividade financeira mesmo sem permitir gastar fundos. Trate-os como dados sensíveis.",
     empty: "Nenhuma carteira monitorada",
     emptyHint: "Adicione endereços regtest ou um descriptor público para acompanhar saldos e histórico.",
     received: "Recebido",
@@ -307,7 +314,8 @@ export const ptBR: Dictionary = {
     justification: "Justificativa",
     justificationRequired: "Ignorar exige uma justificativa.",
     linkRecords: "Associar registros manualmente",
-    linkHint: "Descreva o registro correspondente (por exemplo o id externo). A associação fica registrada como evidência.",
+    linkHint:
+      "Descreva o registro correspondente (por exemplo o id externo). A associação fica registrada como evidência.",
     rerun: "Solicitar nova conciliação",
     empty: "Nenhuma divergência aberta",
     emptyHint: "Tudo que foi comparado está conciliado ou ainda dentro das janelas da política.",
@@ -368,13 +376,17 @@ export const ptBR: Dictionary = {
     title: "Aprenda com o sandbox",
     subtitle: "Um tour rápido pelos conceitos que o SatOps mostra, com regtest e dinheiro fictício.",
     confirmationsTitle: "Confirmações não são definitivas",
-    confirmations: "Uma transação ganha confirmações à medida que blocos são adicionados sobre ela. Uma reorganização pode substituir esses blocos, então uma transação confirmada pode voltar a não confirmada. O SatOps espera a política de confirmações antes de creditar e reverte créditos quando a cadeia muda.",
+    confirmations:
+      "Uma transação ganha confirmações à medida que blocos são adicionados sobre ela. Uma reorganização pode substituir esses blocos, então uma transação confirmada pode voltar a não confirmada. O SatOps espera a política de confirmações antes de creditar e reverte créditos quando a cadeia muda.",
     reconciliationTitle: "Por que conciliar",
-    reconciliation: "Sua aplicação, o ledger de referência e a blockchain são fontes independentes. Compará-las revela créditos duplicados, créditos ausentes ou valores errados que nenhum sistema enxerga sozinho.",
+    reconciliation:
+      "Sua aplicação, o ledger de referência e a blockchain são fontes independentes. Compará-las revela créditos duplicados, créditos ausentes ou valores errados que nenhum sistema enxerga sozinho.",
     ledgerTitle: "Ledger de partidas dobradas",
-    ledger: "Toda movimentação é um lançamento cujos débitos são iguais aos créditos. Lançamentos publicados nunca são editados; correções são novos lançamentos compensatórios, então o histórico continua explicável.",
+    ledger:
+      "Toda movimentação é um lançamento cujos débitos são iguais aos créditos. Lançamentos publicados nunca são editados; correções são novos lançamentos compensatórios, então o histórico continua explicável.",
     experimentsTitle: "Experimentos de resiliência",
-    experiments: "Experimentos reorganizam a cadeia, param nodes ou repetem eventos de propósito e verificam se as garantias financeiras continuam valendo.",
+    experiments:
+      "Experimentos reorganizam a cadeia, param nodes ou repetem eventos de propósito e verificam se as garantias financeiras continuam valendo.",
   },
   environments: {
     title: "Ambientes",
@@ -384,7 +396,8 @@ export const ptBR: Dictionary = {
     kind: "Tipo",
     network: "Rede",
     create: "Novo ambiente",
-    regtestOnly: "Somente regtest é permitido. Mainnet e peers públicos são recusados pelo backend, não apenas pela configuração.",
+    regtestOnly:
+      "Somente regtest é permitido. Mainnet e peers públicos são recusados pelo backend, não apenas pela configuração.",
     manageAsCode: "Prefira gerenciar ambientes de forma declarativa em Configuração.",
   },
   nodes: {
@@ -410,7 +423,8 @@ export const ptBR: Dictionary = {
     syncNow: "Sincronizar agora",
     syncQueued: "Sincronização na fila",
     history: "Altura e latência",
-    policyNote: "A seleção de referência usa a cadeia válida com maior trabalho reportada pelos nodes regtest acessíveis, com a prioridade configurada como desempate. Não é uma votação.",
+    policyNote:
+      "A seleção de referência usa a cadeia válida com maior trabalho reportada pelos nodes regtest acessíveis, com a prioridade configurada como desempate. Não é uma votação.",
   },
   blockchain: {
     title: "Blockchain",
@@ -430,7 +444,8 @@ export const ptBR: Dictionary = {
     payload: "Payload",
     correlation: "Correlação",
     causation: "Causa",
-    mempoolNote: "Eventos transitórios da mempool perdidos durante uma desconexão nem sempre podem ser reconstruídos. O estado confirmado é sempre reconstruído via RPC.",
+    mempoolNote:
+      "Eventos transitórios da mempool perdidos durante uma desconexão nem sempre podem ser reconstruídos. O estado confirmado é sempre reconstruído via RPC.",
     txCount: "Transações",
   },
   integrations: {
@@ -450,7 +465,8 @@ export const ptBR: Dictionary = {
     secretHint: "Credenciais nunca ficam na configuração; referencie um segredo pelo nome.",
     config: "Configuração",
     uploadCsv: "Enviar CSV",
-    csvHint: "Colunas: source_record_id, kind, account_ref, amount_sats, txid, vout, status, occurred_at. Valores em satoshis inteiros.",
+    csvHint:
+      "Colunas: source_record_id, kind, account_ref, amount_sats, txid, vout, status, occurred_at. Valores em satoshis inteiros.",
     imported: "{{count}} registros importados",
     editAsCode: "Editar em YAML",
     host: "Host",
@@ -537,10 +553,12 @@ export const ptBR: Dictionary = {
     cleanup: "Limpeza",
     reason: "Desfecho",
     builder: "Construtor de cenários",
-    builderHint: "Cenários são recursos Experiment declarativos. Somente ações registradas podem ser usadas; nada de shell, código ou manifests.",
+    builderHint:
+      "Cenários são recursos Experiment declarativos. Somente ações registradas podem ser usadas; nada de shell, código ou manifests.",
     actions: "Ações disponíveis",
     idempotency: "Idempotência",
-    reproducibility: "As entradas são reproduzíveis; hashes de bloco, txids e timestamps não são reproduzíveis bit a bit.",
+    reproducibility:
+      "As entradas são reproduzíveis; hashes de bloco, txids e timestamps não são reproduzíveis bit a bit.",
     empty: "Nenhuma execução ainda",
     progress: "Progresso",
   },
@@ -570,7 +588,8 @@ export const ptBR: Dictionary = {
     import: "Importar arquivo",
     export: "Exportar YAML",
     normalizationNote: "Comentários e formatação são normalizados para YAML canônico ao salvar.",
-    unknownFields: "Este documento tem campos que o formulário não edita. Eles são preservados; use o YAML para alterá-los.",
+    unknownFields:
+      "Este documento tem campos que o formulário não edita. Eles são preservados; use o YAML para alterá-los.",
     noChanges: "Sem alterações",
     message: "Mensagem da alteração",
     kindLabel: "Tipo",

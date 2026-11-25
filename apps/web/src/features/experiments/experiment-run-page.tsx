@@ -84,11 +84,16 @@ export default function ExperimentRunPage() {
   const done = run.steps.filter((s) => ["succeeded", "failed", "skipped", "unknown"].includes(s.status)).length;
   const pct = run.steps.length ? Math.round((done / run.steps.length) * 100) : 0;
   const terminal = TERMINAL.includes(run.status);
-  const elapsed = run.startedAt ? new Date(run.finishedAt ?? Date.now()).getTime() - new Date(run.startedAt).getTime() : null;
+  const elapsed = run.startedAt
+    ? new Date(run.finishedAt ?? Date.now()).getTime() - new Date(run.startedAt).getTime()
+    : null;
 
   return (
     <div className="flex flex-col gap-5">
-      <Link to="/engineering/experiments" className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-text">
+      <Link
+        to="/engineering/experiments"
+        className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-text"
+      >
         <ArrowLeft size={16} /> {t("experiments.title")}
       </Link>
       <PageHeader
@@ -98,7 +103,14 @@ export default function ExperimentRunPage() {
           <>
             <StatusTag status={run.status} />
             {terminal ? (
-              <Button onClick={() => download(`/api/reports/experiments/${run.id}`, `experiment-${run.scenarioName}-${run.id.slice(0, 8)}.json`)}>
+              <Button
+                onClick={() =>
+                  download(
+                    `/api/reports/experiments/${run.id}`,
+                    `experiment-${run.scenarioName}-${run.id.slice(0, 8)}.json`,
+                  )
+                }
+              >
                 <Download /> {t("experiments.downloadReport")}
               </Button>
             ) : can("experiment.run") ? (
@@ -109,14 +121,44 @@ export default function ExperimentRunPage() {
           </>
         }
       />
-      {run.statusReason ? <Notice tone={run.status === "passed" ? "success" : run.status === "failed" ? "danger" : "warning"}>{run.statusReason}</Notice> : null}
+      {run.statusReason ? (
+        <Notice tone={run.status === "passed" ? "success" : run.status === "failed" ? "danger" : "warning"}>
+          {run.statusReason}
+        </Notice>
+      ) : null}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricCard label={t("experiments.progress")} value={`${pct}%`} hint={`${done}/${run.steps.length} ${t("experiments.steps").toLowerCase()}`} glow="blue" />
+        <MetricCard
+          label={t("experiments.progress")}
+          value={`${pct}%`}
+          hint={`${done}/${run.steps.length} ${t("experiments.steps").toLowerCase()}`}
+          glow="blue"
+        />
         <MetricCard label={t("experiments.duration")} value={durationMs(elapsed)} glow="violet" />
-        <MetricCard label={t("experiments.assertions")} value={`${run.assertions.filter((a) => a.outcome === "passed").length}/${run.assertions.length}`} glow="green" />
-        <MetricCard label={t("experiments.cleanup")} value={<StatusTag status={run.cleanupStatus === "completed" ? "completed" : run.cleanupStatus === "failed" ? "failed" : "pending"} />} glow="amber" />
+        <MetricCard
+          label={t("experiments.assertions")}
+          value={`${run.assertions.filter((a) => a.outcome === "passed").length}/${run.assertions.length}`}
+          glow="green"
+        />
+        <MetricCard
+          label={t("experiments.cleanup")}
+          value={
+            <StatusTag
+              status={
+                run.cleanupStatus === "completed" ? "completed" : run.cleanupStatus === "failed" ? "failed" : "pending"
+              }
+            />
+          }
+          glow="amber"
+        />
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-surface-3" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={t("experiments.progress")}>
+      <div
+        className="h-1.5 overflow-hidden rounded-full bg-surface-3"
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={t("experiments.progress")}
+      >
         <div className="h-full rounded-full bg-primary transition-[width] duration-500" style={{ width: `${pct}%` }} />
       </div>
       <Panel>
@@ -127,7 +169,12 @@ export default function ExperimentRunPage() {
               <button
                 type="button"
                 className="flex w-full flex-wrap items-center gap-3 px-5 py-3 text-left hover:bg-surface-2"
-                onClick={() => setInspect({ title: s.stepKey, value: { params: s.params, result: s.result, checkpoint: s.checkpoint, failure: s.failureReason } })}
+                onClick={() =>
+                  setInspect({
+                    title: s.stepKey,
+                    value: { params: s.params, result: s.result, checkpoint: s.checkpoint, failure: s.failureReason },
+                  })
+                }
               >
                 <span className={cn("w-6 text-right font-mono text-xs text-text-muted")}>{s.position + 1}</span>
                 <Tag tone="neutral" dot={false}>
@@ -139,7 +186,10 @@ export default function ExperimentRunPage() {
                   {s.failureReason ? <span className="block text-xs text-danger">{s.failureReason}</span> : null}
                 </span>
                 <span className="text-xs text-text-muted">
-                  {s.attempts}/{s.maxAttempts} · {s.startedAt && s.finishedAt ? durationMs(new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) : "-"}
+                  {s.attempts}/{s.maxAttempts} ·{" "}
+                  {s.startedAt && s.finishedAt
+                    ? durationMs(new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime())
+                    : "-"}
                 </span>
                 <StatusTag status={s.status} />
               </button>
@@ -150,7 +200,9 @@ export default function ExperimentRunPage() {
       <Panel>
         <PanelHeader title={t("experiments.assertions")} />
         <ul className="flex flex-col divide-y divide-border border-t border-border">
-          {run.assertions.length === 0 ? <li className="px-5 py-4 text-[13px] text-text-muted">{t("common.noResults")}</li> : null}
+          {run.assertions.length === 0 ? (
+            <li className="px-5 py-4 text-[13px] text-text-muted">{t("common.noResults")}</li>
+          ) : null}
           {run.assertions.map((a) => (
             <li key={a.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
               <span className="min-w-0 flex-1">
@@ -158,7 +210,8 @@ export default function ExperimentRunPage() {
                 <span className="block text-xs text-text-muted">{a.message}</span>
               </span>
               <span className="text-xs text-text-secondary">
-                {t("experiments.expected")}: {JSON.stringify(a.expected?.value ?? a.expected)} · {t("experiments.actual")}: {JSON.stringify(a.actual?.value ?? a.actual)}
+                {t("experiments.expected")}: {JSON.stringify(a.expected?.value ?? a.expected)} ·{" "}
+                {t("experiments.actual")}: {JSON.stringify(a.actual?.value ?? a.actual)}
               </span>
               <StatusTag status={a.outcome === "passed" ? "passed" : a.outcome} />
             </li>

@@ -8,41 +8,52 @@ type ControlStyle = { variant?: "solid" | "outline"; controlSize?: "sm" | "md" |
 const controlSizes = { sm: "h-7 px-2", md: "h-8 px-2.5", lg: "h-9 px-3", xl: "h-10 px-3.5" };
 const controlStyles = { solid: "border-transparent bg-surface-2", outline: "border-border-strong bg-surface" };
 
-export const Input = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement> & ControlStyle>(function Input(
-  { className, variant = "solid", controlSize = "lg", ...props },
-  ref,
-) {
-  return <input ref={ref} className={cn(control, controlSizes[controlSize], controlStyles[variant], className)} {...props} />;
-});
-
-export const Textarea = forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement> & Pick<ControlStyle, "variant">>(
-  function Textarea({ className, variant = "solid", ...props }, ref) {
-    return <textarea ref={ref} className={cn(control, "min-h-24 resize-y py-2.5 leading-relaxed", controlStyles[variant], className)} {...props} />;
+export const Input = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement> & ControlStyle>(
+  function Input({ className, variant = "solid", controlSize = "lg", ...props }, ref) {
+    return (
+      <input
+        ref={ref}
+        className={cn(control, controlSizes[controlSize], controlStyles[variant], className)}
+        {...props}
+      />
+    );
   },
 );
 
-export const Select = forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement> & ControlStyle>(function Select(
-  { className, children, variant = "outline", controlSize = "md", style, ...props },
-  ref,
-) {
+export const Textarea = forwardRef<
+  HTMLTextAreaElement,
+  React.TextareaHTMLAttributes<HTMLTextAreaElement> & Pick<ControlStyle, "variant">
+>(function Textarea({ className, variant = "solid", ...props }, ref) {
   return (
-    <select
+    <textarea
       ref={ref}
-      className={cn(control, controlSizes[controlSize], controlStyles[variant], "appearance-none pr-9", className)}
-      style={{
-        backgroundImage:
-          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360646c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")",
-        backgroundSize: "16px",
-        backgroundPosition: "right 10px center",
-        backgroundRepeat: "no-repeat",
-        ...style,
-      }}
+      className={cn(control, "min-h-24 resize-y py-2.5 leading-relaxed", controlStyles[variant], className)}
       {...props}
-    >
-      {children}
-    </select>
+    />
   );
 });
+
+export const Select = forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement> & ControlStyle>(
+  function Select({ className, children, variant = "outline", controlSize = "md", style, ...props }, ref) {
+    return (
+      <select
+        ref={ref}
+        className={cn(control, controlSizes[controlSize], controlStyles[variant], "appearance-none pr-9", className)}
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360646c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")",
+          backgroundSize: "16px",
+          backgroundPosition: "right 10px center",
+          backgroundRepeat: "no-repeat",
+          ...style,
+        }}
+        {...props}
+      >
+        {children}
+      </select>
+    );
+  },
+);
 
 export function Field({
   label,
@@ -81,7 +92,17 @@ export function Field({
   );
 }
 
-export function Checkbox({ checked, onChange, label, disabled }: { checked: boolean; onChange: (v: boolean) => void; label: React.ReactNode; disabled?: boolean }) {
+export function Checkbox({
+  checked,
+  onChange,
+  label,
+  disabled,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  label: React.ReactNode;
+  disabled?: boolean;
+}) {
   return (
     <label className="flex cursor-pointer items-start gap-2.5 text-[13px] text-text-secondary">
       <input
@@ -96,11 +117,35 @@ export function Checkbox({ checked, onChange, label, disabled }: { checked: bool
   );
 }
 
-export function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+export function Switch({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  label: string;
+}) {
   return (
-    <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className="flex items-center gap-3 text-left text-[13px] text-text-secondary">
-      <span className={cn("relative h-5 w-9 shrink-0 rounded-full transition-colors", checked ? "bg-primary" : "bg-border-strong")}>
-        <span className={cn("absolute left-0 top-0.5 size-4 rounded-full bg-white transition-transform", checked ? "translate-x-[18px]" : "translate-x-0.5")} />
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className="flex items-center gap-3 text-left text-[13px] text-text-secondary"
+    >
+      <span
+        className={cn(
+          "relative h-5 w-9 shrink-0 rounded-full transition-colors",
+          checked ? "bg-primary" : "bg-border-strong",
+        )}
+      >
+        <span
+          className={cn(
+            "absolute left-0 top-0.5 size-4 rounded-full bg-white transition-transform",
+            checked ? "translate-x-[18px]" : "translate-x-0.5",
+          )}
+        />
       </span>
       {label}
     </button>

@@ -23,14 +23,22 @@ describe("configuration contract", () => {
   });
 
   it("detects fields the form does not know so they are preserved, not dropped", () => {
-    expect(knownPaths(schemaFor("Environment"), { ...doc, spec: { ...doc.spec, futureField: 1 } })).toEqual(["/spec/futureField"]);
+    expect(knownPaths(schemaFor("Environment"), { ...doc, spec: { ...doc.spec, futureField: 1 } })).toEqual([
+      "/spec/futureField",
+    ]);
   });
 
   it("form edits change only the edited field and keep the rest of the document", () => {
     const onChange = vi.fn();
     render(
       <I18nProvider initial="en">
-        <SchemaForm schema={schemaFor("Environment")!.properties!.spec!} value={doc.spec as never} onChange={onChange} path="/spec" errors={{}} />
+        <SchemaForm
+          schema={schemaFor("Environment")!.properties!.spec!}
+          value={doc.spec as never}
+          onChange={onChange}
+          path="/spec"
+          errors={{}}
+        />
       </I18nProvider>,
     );
     fireEvent.change(screen.getByLabelText(/^Nodes/), { target: { value: "3" } });

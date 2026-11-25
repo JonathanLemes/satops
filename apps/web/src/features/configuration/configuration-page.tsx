@@ -53,7 +53,12 @@ export default function ConfigurationPage() {
       <Notice tone="info">{t("config.reapplyNote")}</Notice>
       <Panel>
         <div className="flex items-center gap-3 p-4">
-          <Select aria-label={t("config.kindLabel")} value={kind} onChange={(e) => setParams(e.target.value ? { kind: e.target.value } : {})} className="w-60">
+          <Select
+            aria-label={t("config.kindLabel")}
+            value={kind}
+            onChange={(e) => setParams(e.target.value ? { kind: e.target.value } : {})}
+            className="w-60"
+          >
             <option value="">{t("common.all")}</option>
             {KINDS.map((k) => (
               <option key={k} value={k}>
@@ -70,13 +75,27 @@ export default function ConfigurationPage() {
           rowKey={(r) => r.id}
           onRowClick={(r) => navigate(`/engineering/configuration/${r.kind}/${r.name}`)}
           columns={[
-            { key: "kind", header: t("config.kindLabel"), cell: (r) => <Tag tone="neutral" dot={false}>{r.kind}</Tag>, sortValue: (r) => r.kind },
+            {
+              key: "kind",
+              header: t("config.kindLabel"),
+              cell: (r) => (
+                <Tag tone="neutral" dot={false}>
+                  {r.kind}
+                </Tag>
+              ),
+              sortValue: (r) => r.kind,
+            },
             { key: "name", header: t("common.name"), primary: true, cell: (r) => r.name, sortValue: (r) => r.name },
             { key: "env", header: t("common.environment"), cell: (r) => r.environmentRef ?? "-" },
             { key: "rev", header: t("config.desired"), align: "right", cell: (r) => r.desiredRevision },
             { key: "applied", header: t("config.applied"), align: "right", cell: (r) => r.appliedRevision ?? "-" },
             { key: "status", header: t("common.status"), cell: (r) => <StatusTag status={r.status} /> },
-            { key: "updated", header: t("common.updated"), cell: (r) => relativeTime(r.updatedAt, locale), sortValue: (r) => r.updatedAt },
+            {
+              key: "updated",
+              header: t("common.updated"),
+              cell: (r) => relativeTime(r.updatedAt, locale),
+              sortValue: (r) => r.updatedAt,
+            },
           ]}
           pageSize={30}
         />

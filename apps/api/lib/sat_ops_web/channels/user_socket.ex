@@ -7,9 +7,14 @@ defmodule SatOpsWeb.UserSocket do
   def connect(_params, socket, connect_info) do
     token =
       case Map.get(connect_info, :cookies) do
-        cookies when is_map(cookies) -> Map.get(cookies, "satops_session")
-        cookies when is_list(cookies) -> Enum.find_value(cookies, fn {k, v} -> if to_string(k) == "satops_session", do: v end)
-        _ -> nil
+        cookies when is_map(cookies) ->
+          Map.get(cookies, "satops_session")
+
+        cookies when is_list(cookies) ->
+          Enum.find_value(cookies, fn {k, v} -> if to_string(k) == "satops_session", do: v end)
+
+        _ ->
+          nil
       end
 
     case SatOps.Identity.fetch_session(token) do

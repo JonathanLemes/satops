@@ -88,7 +88,10 @@ export default function BlockchainPage() {
   const [tab, setTab] = useState<"blocks" | "reorgs" | "events">("blocks");
   const blocks = useQuery(BLOCKS, { variables: { environmentId }, skip: tab !== "blocks" });
   const [typeFilter, setTypeFilter] = useState("");
-  const events = useQuery(EVENTS, { variables: { environmentId, types: typeFilter ? [typeFilter] : null }, skip: tab !== "events" });
+  const events = useQuery(EVENTS, {
+    variables: { environmentId, types: typeFilter ? [typeFilter] : null },
+    skip: tab !== "events",
+  });
   const [inspect, setInspect] = useState<EventRow | null>(null);
   const c = chain.data?.chainOverview;
 
@@ -99,10 +102,25 @@ export default function BlockchainPage() {
     <div className="flex flex-col gap-5">
       <PageHeader title={t("blockchain.title")} subtitle={t("blockchain.subtitle")} />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricCard label={t("blockchain.tip")} value={formatNumber(c?.tip?.height, locale)} hint={<Hash value={c?.tip?.hash} copy={false} />} glow="blue" />
-        <MetricCard label={t("blockchain.checkpoint")} value={formatNumber(c?.checkpointHeight, locale)} hint={relativeTime(c?.checkpointUpdatedAt, locale)} glow="violet" />
+        <MetricCard
+          label={t("blockchain.tip")}
+          value={formatNumber(c?.tip?.height, locale)}
+          hint={<Hash value={c?.tip?.hash} copy={false} />}
+          glow="blue"
+        />
+        <MetricCard
+          label={t("blockchain.checkpoint")}
+          value={formatNumber(c?.checkpointHeight, locale)}
+          hint={relativeTime(c?.checkpointUpdatedAt, locale)}
+          glow="violet"
+        />
         <MetricCard label={t("nodes.mempool")} value={formatNumber(c?.mempoolSize, locale)} glow="amber" />
-        <MetricCard label={t("blockchain.reorgs")} value={c?.reorganizations.length ?? 0} hint={`${t("nodes.reference")}: ${c?.referenceNode ?? "-"}`} glow={c?.reorganizations.length ? "red" : "green"} />
+        <MetricCard
+          label={t("blockchain.reorgs")}
+          value={c?.reorganizations.length ?? 0}
+          hint={`${t("nodes.reference")}: ${c?.referenceNode ?? "-"}`}
+          glow={c?.reorganizations.length ? "red" : "green"}
+        />
       </div>
       <Notice tone="info">
         <Info size={16} className="mt-0.5 shrink-0" />
@@ -124,7 +142,13 @@ export default function BlockchainPage() {
           }
           actions={
             tab === "events" ? (
-              <Input aria-label={t("blockchain.eventType")} placeholder={t("blockchain.eventType")} value={typeFilter} onChange={(e) => setTypeFilter(e.target.value.trim())} className="w-60 font-mono text-xs" />
+              <Input
+                aria-label={t("blockchain.eventType")}
+                placeholder={t("blockchain.eventType")}
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value.trim())}
+                className="w-60 font-mono text-xs"
+              />
             ) : null
           }
         />
@@ -151,11 +175,34 @@ export default function BlockchainPage() {
               empty={{ title: t("widgets.noReorgs") }}
               columns={[
                 { key: "time", header: t("common.time"), cell: (r) => formatDateTime(r.observedAt, locale) },
-                { key: "depth", header: t("blockchain.depth"), align: "right", cell: (r) => String(r.payload?.depth ?? "-") },
-                { key: "ancestor", header: t("blockchain.ancestor"), cell: (r) => `${String(r.payload?.ancestor_height ?? "-")}` },
-                { key: "disc", header: t("blockchain.disconnected"), align: "right", cell: (r) => (r.payload?.disconnected as unknown[] | undefined)?.length ?? 0 },
-                { key: "conn", header: t("blockchain.connected"), align: "right", cell: (r) => (r.payload?.connected as unknown[] | undefined)?.length ?? 0 },
-                { key: "old", header: "Old tip", cell: (r) => <Hash value={String(r.payload?.old_tip ?? "")} copy={false} /> },
+                {
+                  key: "depth",
+                  header: t("blockchain.depth"),
+                  align: "right",
+                  cell: (r) => String(r.payload?.depth ?? "-"),
+                },
+                {
+                  key: "ancestor",
+                  header: t("blockchain.ancestor"),
+                  cell: (r) => `${String(r.payload?.ancestor_height ?? "-")}`,
+                },
+                {
+                  key: "disc",
+                  header: t("blockchain.disconnected"),
+                  align: "right",
+                  cell: (r) => (r.payload?.disconnected as unknown[] | undefined)?.length ?? 0,
+                },
+                {
+                  key: "conn",
+                  header: t("blockchain.connected"),
+                  align: "right",
+                  cell: (r) => (r.payload?.connected as unknown[] | undefined)?.length ?? 0,
+                },
+                {
+                  key: "old",
+                  header: "Old tip",
+                  cell: (r) => <Hash value={String(r.payload?.old_tip ?? "")} copy={false} />,
+                },
               ]}
             />
             <div className="px-5 pb-5 pt-2">
@@ -178,8 +225,21 @@ export default function BlockchainPage() {
             onRowClick={setInspect}
             columns={[
               { key: "seq", header: "#", cell: (e) => e.seq },
-              { key: "type", header: t("blockchain.eventType"), primary: true, cell: (e) => <span className="font-mono text-xs">{e.eventType}</span> },
-              { key: "aggregate", header: t("blockchain.aggregate"), cell: (e) => <span className="flex items-center gap-1">{e.aggregateType} <Hash value={e.aggregateId} copy={false} size={6} /></span> },
+              {
+                key: "type",
+                header: t("blockchain.eventType"),
+                primary: true,
+                cell: (e) => <span className="font-mono text-xs">{e.eventType}</span>,
+              },
+              {
+                key: "aggregate",
+                header: t("blockchain.aggregate"),
+                cell: (e) => (
+                  <span className="flex items-center gap-1">
+                    {e.aggregateType} <Hash value={e.aggregateId} copy={false} size={6} />
+                  </span>
+                ),
+              },
               { key: "time", header: t("common.time"), cell: (e) => formatDateTime(e.observedAt, locale) },
             ]}
             pageSize={30}

@@ -14,7 +14,18 @@ import { DataTable } from "@/components/data/data-table";
 import { Hash, MetricCard, Sats } from "@/components/data/display";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
-import { EmptyState, ErrorState, LoadingState, Notice, PageHeader, Panel, PanelHeader, Segmented, StatusTag, Tag } from "@/components/ui/misc";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  Notice,
+  PageHeader,
+  Panel,
+  PanelHeader,
+  Segmented,
+  StatusTag,
+  Tag,
+} from "@/components/ui/misc";
 import { ConfirmDialog, Sheet } from "@/components/ui/overlay";
 
 const WALLETS = graphql(`
@@ -118,7 +129,15 @@ export default function WalletsPage() {
 
   const form = useForm<Values>({
     resolver: zodResolver(schema) as never,
-    defaultValues: { name: "", kind: "addresses", addresses: "", descriptor: "", derivationLimit: 20, groupName: "", accountRef: "" },
+    defaultValues: {
+      name: "",
+      kind: "addresses",
+      addresses: "",
+      descriptor: "",
+      derivationLimit: 20,
+      groupName: "",
+      accountRef: "",
+    },
   });
   const kind = form.watch("kind");
 
@@ -164,7 +183,11 @@ export default function WalletsPage() {
         }
       />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricCard label={t("wallets.consolidated")} value={<Sats value={(p?.balance.confirmedSats ?? 0) + (p?.balance.pendingSats ?? 0)} />} glow="amber" />
+        <MetricCard
+          label={t("wallets.consolidated")}
+          value={<Sats value={(p?.balance.confirmedSats ?? 0) + (p?.balance.pendingSats ?? 0)} />}
+          glow="amber"
+        />
         <MetricCard label={t("wallets.confirmed")} value={<Sats value={p?.balance.confirmedSats} />} glow="green" />
         <MetricCard label={t("wallets.pending")} value={<Sats value={p?.balance.pendingSats} />} glow="violet" />
         <MetricCard label={t("wallets.utxos")} value={p?.balance.utxoCount ?? 0} glow="blue" />
@@ -221,7 +244,12 @@ export default function WalletsPage() {
                       <Sats value={w.balance.pendingSats} />
                     </span>
                     {can("wallet.manage") ? (
-                      <Button variant="ghost" size="icon-sm" aria-label={t("common.delete")} onClick={() => setToDelete(w.id)}>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={t("common.delete")}
+                        onClick={() => setToDelete(w.id)}
+                      >
                         <Trash2 />
                       </Button>
                     ) : null}
@@ -237,11 +265,36 @@ export default function WalletsPage() {
             loading={portfolio.loading}
             rowKey={(r) => r.txid}
             columns={[
-              { key: "txid", header: t("transactions.txid"), cell: (r) => <Link to={`/transactions/${r.txid}`}><Hash value={r.txid} copy={false} /></Link> },
+              {
+                key: "txid",
+                header: t("transactions.txid"),
+                cell: (r) => (
+                  <Link to={`/transactions/${r.txid}`}>
+                    <Hash value={r.txid} copy={false} />
+                  </Link>
+                ),
+              },
               { key: "status", header: t("common.status"), cell: (r) => <StatusTag status={r.status} /> },
-              { key: "received", header: t("wallets.received"), align: "right", cell: (r) => <Sats value={r.receivedSats} />, sortValue: (r) => r.receivedSats },
-              { key: "sent", header: t("wallets.sent"), align: "right", cell: (r) => <Sats value={r.sentSats} />, sortValue: (r) => r.sentSats },
-              { key: "seen", header: t("transactions.firstSeen"), cell: (r) => relativeTime(r.firstSeenAt, locale), sortValue: (r) => r.firstSeenAt },
+              {
+                key: "received",
+                header: t("wallets.received"),
+                align: "right",
+                cell: (r) => <Sats value={r.receivedSats} />,
+                sortValue: (r) => r.receivedSats,
+              },
+              {
+                key: "sent",
+                header: t("wallets.sent"),
+                align: "right",
+                cell: (r) => <Sats value={r.sentSats} />,
+                sortValue: (r) => r.sentSats,
+              },
+              {
+                key: "seen",
+                header: t("transactions.firstSeen"),
+                cell: (r) => relativeTime(r.firstSeenAt, locale),
+                sortValue: (r) => r.firstSeenAt,
+              },
             ]}
             pageSize={20}
           />
@@ -252,10 +305,24 @@ export default function WalletsPage() {
             loading={portfolio.loading}
             rowKey={(r) => `${r.txid}:${r.vout}`}
             columns={[
-              { key: "outpoint", header: "Outpoint", cell: (r) => <span className="font-mono text-xs">{`${r.txid.slice(0, 10)}…:${r.vout}`}</span> },
+              {
+                key: "outpoint",
+                header: "Outpoint",
+                cell: (r) => <span className="font-mono text-xs">{`${r.txid.slice(0, 10)}…:${r.vout}`}</span>,
+              },
               { key: "address", header: t("wallets.addresses"), cell: (r) => <Hash value={r.address} /> },
-              { key: "value", header: t("common.amount"), align: "right", cell: (r) => <Sats value={r.valueSats} />, sortValue: (r) => r.valueSats },
-              { key: "status", header: t("common.status"), cell: (r) => <StatusTag status={r.spentUnconfirmed ? "pending" : r.status} /> },
+              {
+                key: "value",
+                header: t("common.amount"),
+                align: "right",
+                cell: (r) => <Sats value={r.valueSats} />,
+                sortValue: (r) => r.valueSats,
+              },
+              {
+                key: "status",
+                header: t("common.status"),
+                cell: (r) => <StatusTag status={r.spentUnconfirmed ? "pending" : r.status} />,
+              },
             ]}
             pageSize={20}
           />
@@ -293,7 +360,11 @@ export default function WalletsPage() {
             <ShieldAlert size={16} className="mt-0.5 shrink-0" />
             {t("wallets.sensitive")}
           </Notice>
-          <Field label={t("common.name")} required error={form.formState.errors.name ? t("validation.required") : undefined}>
+          <Field
+            label={t("common.name")}
+            required
+            error={form.formState.errors.name ? t("validation.required") : undefined}
+          >
             {(id) => <Input id={id} {...form.register("name")} />}
           </Field>
           <Field label={t("wallets.kind")}>
@@ -306,18 +377,33 @@ export default function WalletsPage() {
           </Field>
           {kind === "addresses" ? (
             <Field label={t("wallets.addresses")} hint={t("wallets.addressesHint")}>
-              {(id, d) => <Textarea id={id} aria-describedby={d} className="font-mono text-xs" {...form.register("addresses")} />}
+              {(id, d) => (
+                <Textarea id={id} aria-describedby={d} className="font-mono text-xs" {...form.register("addresses")} />
+              )}
             </Field>
           ) : (
             <>
               <Field label={t("wallets.descriptor")} hint={t("wallets.descriptorHint")}>
-                {(id, d) => <Textarea id={id} aria-describedby={d} className="font-mono text-xs" {...form.register("descriptor")} />}
+                {(id, d) => (
+                  <Textarea
+                    id={id}
+                    aria-describedby={d}
+                    className="font-mono text-xs"
+                    {...form.register("descriptor")}
+                  />
+                )}
               </Field>
-              <Field label={t("wallets.derivationLimit")}>{(id) => <Input id={id} type="number" min={1} max={1000} {...form.register("derivationLimit")} />}</Field>
+              <Field label={t("wallets.derivationLimit")}>
+                {(id) => <Input id={id} type="number" min={1} max={1000} {...form.register("derivationLimit")} />}
+              </Field>
             </>
           )}
           <Field label={t("wallets.group")}>{(id) => <Input id={id} {...form.register("groupName")} />}</Field>
-          <Field label={t("wallets.accountRef")} hint={t("wallets.accountRefHint")} error={form.formState.errors.accountRef ? t("validation.slug") : undefined}>
+          <Field
+            label={t("wallets.accountRef")}
+            hint={t("wallets.accountRefHint")}
+            error={form.formState.errors.accountRef ? t("validation.slug") : undefined}
+          >
             {(id, d) => <Input id={id} aria-describedby={d} {...form.register("accountRef")} />}
           </Field>
         </form>

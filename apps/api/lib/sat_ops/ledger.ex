@@ -323,6 +323,44 @@ defmodule SatOps.Ledger do
     }
   end
 
+  def customer_adjustments(environment_id) do
+    Repo.all(
+      from p in Posting,
+        join: j in Journal,
+        on: j.id == p.journal_id,
+        join: a in Account,
+        on: a.id == p.account_id,
+        where:
+          p.environment_id == ^environment_id and like(a.code, "liabilities:customers:%:available") and
+            not like(j.rule_name, "deposit_%") and not like(j.rule_name, "withdrawal_%"),
+        order_by: p.id,
+        select: %{
+          id: p.id,
+          ref: a.owner_ref,
+          direction: p.direction,
+          amount: p.amount_sats,
+          rule: j.rule_name,
+          operation: j.operation_id,
+          at: j.posted_at
+        }
+    )
+    |> Enum.map(fn p ->
+      %{
+        "source_record_id" => "posting:#{p.id}",
+        "kind" => if(p.direction == "credit", do: "transfer_in", else: "transfer_out"),
+        "account_ref" => p.ref,
+        "asset" => "BTC",
+        "amount_sats" => p.amount,
+        "txid" => nil,
+        "vout" => nil,
+        "status" => "completed",
+        "rule" => p.rule,
+        "operation_id" => p.operation,
+        "occurred_at" => DateTime.to_iso8601(p.at)
+      }
+    end)
+  end
+
   def duplicate_credits(environment_id) do
     %{rows: [[n]]} =
       Repo.query!(

@@ -50,7 +50,10 @@ test("backend rejects duplicate YAML keys with the line number", async ({ page }
 test("tests the Bitcoin Core connection", async ({ page }) => {
   await login(page);
   await page.goto("/engineering/integrations");
-  await page.getByRole("row", { name: /bitcoin-0/ }).getByRole("button", { name: "Test connection" }).click();
+  await page
+    .getByRole("row", { name: /bitcoin-0/ })
+    .getByRole("button", { name: "Test connection" })
+    .click();
   await expect(page.getByText("Connection healthy")).toBeVisible();
 });
 
@@ -60,7 +63,7 @@ test("runs a reconciliation and opens the run", async ({ page }) => {
   await page.getByRole("button", { name: "Run reconciliation" }).click();
   await expect(page).toHaveURL(/reconciliation\/runs\//);
   await expect(page.getByText("Sources")).toBeVisible();
-  await expect(page.getByRole("cell", { name: /native-ledger/ })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByRole("cell", { name: /native-ledger/ }).first()).toBeVisible({ timeout: 60_000 });
 });
 
 test("customizes the engineering dashboard", async ({ page }) => {
@@ -78,11 +81,12 @@ test("viewers do not see the engineering workspace", async ({ page }) => {
   const email = `${unique("viewer")}@example.test`;
   await page.goto("/settings");
   await page.getByRole("button", { name: "New user" }).click();
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Name").fill("E2E Viewer");
-  await page.getByLabel("Role").selectOption("viewer");
-  await page.getByLabel("Password").fill("viewer-password-123");
-  await page.getByRole("button", { name: "Create" }).click();
+  const sheet = page.getByRole("dialog");
+  await sheet.getByLabel("Email").fill(email);
+  await sheet.getByLabel("Name").fill("E2E Viewer");
+  await sheet.getByLabel("Role").selectOption("viewer");
+  await sheet.getByLabel("Password").fill("viewer-password-123");
+  await sheet.getByRole("button", { name: "Create" }).click();
   await expect(page.getByText("User created")).toBeVisible();
   await page.getByRole("button", { name: "Account" }).click();
   await page.getByRole("menuitem", { name: "Sign out" }).click();
@@ -99,6 +103,7 @@ test("starts an experiment and follows it to a verdict", async ({ page }) => {
   await page.locator("li", { hasText: "Worker crash" }).getByRole("button", { name: "Start" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Start" }).click();
   await expect(page).toHaveURL(/experiments\/runs\//);
-  await expect(page.getByText(/Passed|Failed|Inconclusive/).first()).toBeVisible({ timeout: 240_000 });
-  await expect(page.getByText("Passed").first()).toBeVisible();
+  const header = page.locator("[data-page-header]");
+  await expect(header).toContainText(/Passed|Failed|Inconclusive|Aborted/, { timeout: 240_000 });
+  await expect(header).toContainText("Passed");
 });

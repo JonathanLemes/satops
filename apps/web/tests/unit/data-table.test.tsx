@@ -13,7 +13,16 @@ function setup(extra = {}) {
   const onRowClick = vi.fn();
   render(
     <I18nProvider initial="en">
-      <DataTable rows={rows} rowKey={(r) => r.id} onRowClick={onRowClick} columns={[{ key: "id", header: "Id", cell: (r) => r.id }, { key: "amount", header: "Amount", cell: (r) => r.amount, sortValue: (r) => r.amount }]} {...extra} />
+      <DataTable
+        rows={rows}
+        rowKey={(r) => r.id}
+        onRowClick={onRowClick}
+        columns={[
+          { key: "id", header: "Id", cell: (r) => r.id },
+          { key: "amount", header: "Amount", cell: (r) => r.amount, sortValue: (r) => r.amount },
+        ]}
+        {...extra}
+      />
     </I18nProvider>,
   );
   return { onRowClick };
@@ -23,7 +32,10 @@ describe("DataTable", () => {
   it("sorts by a sortable column and exposes aria-sort", () => {
     setup();
     fireEvent.click(screen.getByRole("button", { name: /Amount/ }));
-    const cells = screen.getAllByRole("row").slice(1).map((r) => within(r).getAllByRole("cell")[1]!.textContent);
+    const cells = screen
+      .getAllByRole("row")
+      .slice(1)
+      .map((r) => within(r).getAllByRole("cell")[1]!.textContent);
     expect(cells).toEqual(["30", "20", "10"]);
     expect(screen.getByRole("columnheader", { name: /Amount/ })).toHaveAttribute("aria-sort", "descending");
   });

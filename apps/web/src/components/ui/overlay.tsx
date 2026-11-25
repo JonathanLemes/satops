@@ -27,7 +27,10 @@ export function Sheet({
     <D.Root open={open} onOpenChange={onOpenChange}>
       <D.Portal>
         <D.Overlay className="anim-overlay fixed inset-0 z-40 bg-overlay" />
-        <D.Content style={{ maxWidth: width }} className="anim-sheet fixed inset-y-0 right-0 z-50 flex w-full flex-col bg-surface shadow-pop outline-none">
+        <D.Content
+          style={{ maxWidth: width }}
+          className="anim-sheet fixed inset-y-0 right-0 z-50 flex w-full flex-col bg-surface shadow-pop outline-none"
+        >
           <header className="flex items-start gap-3 px-4 pb-4 pt-5 sm:px-6">
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <D.Title className="font-heading text-lg font-semibold text-text">{title}</D.Title>
@@ -37,12 +40,17 @@ export function Sheet({
                 <D.Description className="sr-only">{title}</D.Description>
               )}
             </div>
-            <D.Close className="flex size-9 items-center justify-center rounded-md text-text-muted hover:bg-surface-2 hover:text-text" aria-label={t("common.close")}>
+            <D.Close
+              className="flex size-9 items-center justify-center rounded-md text-text-muted hover:bg-surface-2 hover:text-text"
+              aria-label={t("common.close")}
+            >
               <X size={18} />
             </D.Close>
           </header>
           <div className="flex-1 overflow-y-auto px-4 pb-6 sm:px-6">{children}</div>
-          {footer ? <footer className="flex flex-wrap justify-end gap-3 bg-surface-2/60 px-4 py-4 sm:px-6">{footer}</footer> : null}
+          {footer ? (
+            <footer className="flex flex-wrap justify-end gap-3 bg-surface-2/60 px-4 py-4 sm:px-6">{footer}</footer>
+          ) : null}
         </D.Content>
       </D.Portal>
     </D.Root>
@@ -152,17 +160,39 @@ export function ConfirmDialog({
 export const Menu = DM.Root;
 export const MenuTrigger = DM.Trigger;
 
-export function MenuContent({ children, align = "end", className }: { children: React.ReactNode; align?: "start" | "end" | "center"; className?: string }) {
+export function MenuContent({
+  children,
+  align = "end",
+  className,
+}: {
+  children: React.ReactNode;
+  align?: "start" | "end" | "center";
+  className?: string;
+}) {
   return (
     <DM.Portal>
-      <DM.Content align={align} sideOffset={6} className={cn("anim-menu z-50 min-w-48 rounded-lg bg-surface p-1 shadow-pop", className)}>
+      <DM.Content
+        align={align}
+        sideOffset={6}
+        className={cn("anim-menu z-50 min-w-48 rounded-lg bg-surface p-1 shadow-pop", className)}
+      >
         {children}
       </DM.Content>
     </DM.Portal>
   );
 }
 
-export function MenuItem({ children, onSelect, danger, disabled }: { children: React.ReactNode; onSelect?: () => void; danger?: boolean; disabled?: boolean }) {
+export function MenuItem({
+  children,
+  onSelect,
+  danger,
+  disabled,
+}: {
+  children: React.ReactNode;
+  onSelect?: () => void;
+  danger?: boolean;
+  disabled?: boolean;
+}) {
   return (
     <DM.Item
       disabled={disabled}
@@ -178,4 +208,6 @@ export function MenuItem({ children, onSelect, danger, disabled }: { children: R
 }
 
 export const MenuSeparator = () => <DM.Separator className="my-1 h-px bg-surface-3" />;
-export const MenuLabel = ({ children }: { children: React.ReactNode }) => <DM.Label className="px-2.5 py-1.5 text-xs text-text-muted">{children}</DM.Label>;
+export const MenuLabel = ({ children }: { children: React.ReactNode }) => (
+  <DM.Label className="px-2.5 py-1.5 text-xs text-text-muted">{children}</DM.Label>
+);

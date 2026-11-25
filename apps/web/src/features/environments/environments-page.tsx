@@ -76,12 +76,35 @@ export default function EnvironmentsPage() {
           rowKey={(e) => e.id}
           onRowClick={(e) => setEnvironmentId(e.id)}
           columns={[
-            { key: "name", header: t("common.name"), primary: true, cell: (e) => <span className="flex items-center gap-2">{e.name}{e.id === environment?.id ? <Tag tone="primary">{t("nodes.reference")}</Tag> : null}</span> },
-            { key: "slug", header: t("environments.slug"), cell: (e) => <span className="font-mono text-xs">{e.slug}</span> },
+            {
+              key: "name",
+              header: t("common.name"),
+              primary: true,
+              cell: (e) => (
+                <span className="flex items-center gap-2">
+                  {e.name}
+                  {e.id === environment?.id ? <Tag tone="primary">{t("nodes.reference")}</Tag> : null}
+                </span>
+              ),
+            },
+            {
+              key: "slug",
+              header: t("environments.slug"),
+              cell: (e) => <span className="font-mono text-xs">{e.slug}</span>,
+            },
             { key: "kind", header: t("environments.kind"), cell: (e) => e.kind },
             { key: "network", header: t("environments.network"), cell: (e) => <Tag tone="warning">{e.network}</Tag> },
-            { key: "confs", header: t("environments.confirmations"), align: "right", cell: (e) => e.requiredConfirmations },
-            { key: "status", header: t("common.status"), cell: (e) => <StatusTag status={e.status === "active" ? "healthy" : "skipped"} /> },
+            {
+              key: "confs",
+              header: t("environments.confirmations"),
+              align: "right",
+              cell: (e) => e.requiredConfirmations,
+            },
+            {
+              key: "status",
+              header: t("common.status"),
+              cell: (e) => <StatusTag status={e.status === "active" ? "healthy" : "skipped"} />,
+            },
             { key: "created", header: t("common.created"), cell: (e) => formatDateTime(e.insertedAt, locale) },
           ]}
         />
@@ -112,10 +135,23 @@ export default function EnvironmentsPage() {
         }
       >
         <div className="flex flex-col gap-4">
-          <Field label={t("environments.slug")} hint={t("validation.slug")}>{(id) => <Input id={id} value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />}</Field>
-          <Field label={t("common.name")}>{(id) => <Input id={id} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />}</Field>
+          <Field label={t("environments.slug")} hint={t("validation.slug")}>
+            {(id) => <Input id={id} value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />}
+          </Field>
+          <Field label={t("common.name")}>
+            {(id) => <Input id={id} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />}
+          </Field>
           <Field label={t("environments.confirmations")}>
-            {(id) => <Input id={id} type="number" min={1} max={100} value={form.requiredConfirmations} onChange={(e) => setForm({ ...form, requiredConfirmations: Number(e.target.value) })} />}
+            {(id) => (
+              <Input
+                id={id}
+                type="number"
+                min={1}
+                max={100}
+                value={form.requiredConfirmations}
+                onChange={(e) => setForm({ ...form, requiredConfirmations: Number(e.target.value) })}
+              />
+            )}
           </Field>
         </div>
       </Sheet>

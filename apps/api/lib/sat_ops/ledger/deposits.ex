@@ -27,7 +27,9 @@ defmodule SatOps.Ledger.Deposits do
     end
   end
 
-  defp decide_state("credited", "confirmed", final, true), do: if(final, do: [:reverse, :detect, :confirm], else: [:reverse, :detect])
+  defp decide_state("credited", "confirmed", final, true),
+    do: if(final, do: [:reverse, :detect, :confirm], else: [:reverse, :detect])
+
   defp decide_state("credited", "confirmed", _final, false), do: []
   defp decide_state("credited", _tx_status, _final, _changed), do: [:reverse]
   defp decide_state(_state, _tx_status, _final, _changed), do: []

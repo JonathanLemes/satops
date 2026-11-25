@@ -92,7 +92,13 @@ export default function AlertsPage() {
   const [tab, setTab] = useState<"occurrences" | "policies">("occurrences");
   const [selected, setSelected] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
-  const [policy, setPolicy] = useState({ name: "", eventTypes: [] as string[], severity: "warning", cooldownSeconds: 300, webhook: "" });
+  const [policy, setPolicy] = useState({
+    name: "",
+    eventTypes: [] as string[],
+    severity: "warning",
+    cooldownSeconds: 300,
+    webhook: "",
+  });
   const occurrence = data?.alerts.find((a) => a.id === selected);
 
   return (
@@ -131,10 +137,29 @@ export default function AlertsPage() {
             empty={{ title: t("alerts.empty") }}
             columns={[
               { key: "title", header: t("common.name"), primary: true, cell: (a) => a.title },
-              { key: "severity", header: t("alerts.severity"), cell: (a) => <Tag tone={a.severity === "critical" ? "danger" : a.severity === "warning" ? "warning" : "info"}>{a.severity}</Tag> },
+              {
+                key: "severity",
+                header: t("alerts.severity"),
+                cell: (a) => (
+                  <Tag tone={a.severity === "critical" ? "danger" : a.severity === "warning" ? "warning" : "info"}>
+                    {a.severity}
+                  </Tag>
+                ),
+              },
               { key: "state", header: t("common.status"), cell: (a) => <StatusTag status={a.state} /> },
-              { key: "count", header: t("alerts.count"), align: "right", cell: (a) => a.count, sortValue: (a) => a.count },
-              { key: "last", header: t("alerts.lastSeen"), cell: (a) => relativeTime(a.lastSeenAt, locale), sortValue: (a) => a.lastSeenAt },
+              {
+                key: "count",
+                header: t("alerts.count"),
+                align: "right",
+                cell: (a) => a.count,
+                sortValue: (a) => a.count,
+              },
+              {
+                key: "last",
+                header: t("alerts.lastSeen"),
+                cell: (a) => relativeTime(a.lastSeenAt, locale),
+                sortValue: (a) => a.lastSeenAt,
+              },
               { key: "policy", header: t("alerts.policies"), cell: (a) => a.policyName },
             ]}
             pageSize={25}
@@ -145,23 +170,45 @@ export default function AlertsPage() {
             rowKey={(p) => p.id}
             columns={[
               { key: "name", header: t("common.name"), primary: true, cell: (p) => p.name },
-              { key: "events", header: t("alerts.events"), cell: (p) => <span className="text-xs">{p.eventTypes.join(", ")}</span> },
+              {
+                key: "events",
+                header: t("alerts.events"),
+                cell: (p) => <span className="text-xs">{p.eventTypes.join(", ")}</span>,
+              },
               { key: "severity", header: t("alerts.severity"), cell: (p) => p.severity },
               { key: "cooldown", header: t("alerts.cooldown"), align: "right", cell: (p) => p.cooldownSeconds },
-              { key: "enabled", header: t("common.status"), cell: (p) => <StatusTag status={p.enabled ? "applied" : "skipped"} /> },
+              {
+                key: "enabled",
+                header: t("common.status"),
+                cell: (p) => <StatusTag status={p.enabled ? "applied" : "skipped"} />,
+              },
             ]}
           />
         )}
       </Panel>
-      <Sheet open={!!occurrence} onOpenChange={(o) => !o && setSelected(null)} title={occurrence?.title ?? ""} description={occurrence?.policyName ?? undefined}>
+      <Sheet
+        open={!!occurrence}
+        onOpenChange={(o) => !o && setSelected(null)}
+        title={occurrence?.title ?? ""}
+        description={occurrence?.policyName ?? undefined}
+      >
         {occurrence ? (
           <div className="flex flex-col gap-4">
             <div className="flex gap-2">
               {can("alert.manage") && occurrence.state === "firing" ? (
-                <Button onClick={() => update({ variables: { id: occurrence.id, action: "acknowledge" } }).then(() => refetch())}>{t("alerts.acknowledge")}</Button>
+                <Button
+                  onClick={() =>
+                    update({ variables: { id: occurrence.id, action: "acknowledge" } }).then(() => refetch())
+                  }
+                >
+                  {t("alerts.acknowledge")}
+                </Button>
               ) : null}
               {can("alert.manage") && occurrence.state !== "resolved" ? (
-                <Button variant="primary" onClick={() => update({ variables: { id: occurrence.id, action: "resolve" } }).then(() => refetch())}>
+                <Button
+                  variant="primary"
+                  onClick={() => update({ variables: { id: occurrence.id, action: "resolve" } }).then(() => refetch())}
+                >
                   {t("alerts.resolve")}
                 </Button>
               ) : null}
@@ -206,7 +253,10 @@ export default function AlertsPage() {
                       eventTypes: policy.eventTypes,
                       severity: policy.severity,
                       cooldownSeconds: Number(policy.cooldownSeconds),
-                      destinations: [{ type: "internal" }, ...(policy.webhook ? [{ type: "webhook", integration: policy.webhook }] : [])],
+                      destinations: [
+                        { type: "internal" },
+                        ...(policy.webhook ? [{ type: "webhook", integration: policy.webhook }] : []),
+                      ],
                     },
                   },
                 });
@@ -223,29 +273,60 @@ export default function AlertsPage() {
         }
       >
         <div className="flex flex-col gap-4">
-          <Field label={t("common.name")}>{(id) => <Input id={id} value={policy.name} onChange={(e) => setPolicy({ ...policy, name: e.target.value })} />}</Field>
+          <Field label={t("common.name")}>
+            {(id) => (
+              <Input id={id} value={policy.name} onChange={(e) => setPolicy({ ...policy, name: e.target.value })} />
+            )}
+          </Field>
           <fieldset className="flex flex-col gap-2">
             <legend className="mb-1 text-[13px] font-medium">{t("alerts.events")}</legend>
             {EVENTS.map((ev) => (
               <Checkbox
                 key={ev}
                 checked={policy.eventTypes.includes(ev)}
-                onChange={(on) => setPolicy({ ...policy, eventTypes: on ? [...policy.eventTypes, ev] : policy.eventTypes.filter((x) => x !== ev) })}
+                onChange={(on) =>
+                  setPolicy({
+                    ...policy,
+                    eventTypes: on ? [...policy.eventTypes, ev] : policy.eventTypes.filter((x) => x !== ev),
+                  })
+                }
                 label={<span className="font-mono text-xs">{ev}</span>}
               />
             ))}
           </fieldset>
           <Field label={t("alerts.severity")}>
             {(id) => (
-              <Select id={id} value={policy.severity} onChange={(e) => setPolicy({ ...policy, severity: e.target.value })}>
+              <Select
+                id={id}
+                value={policy.severity}
+                onChange={(e) => setPolicy({ ...policy, severity: e.target.value })}
+              >
                 <option value="info">info</option>
                 <option value="warning">warning</option>
                 <option value="critical">critical</option>
               </Select>
             )}
           </Field>
-          <Field label={t("alerts.cooldown")}>{(id) => <Input id={id} type="number" min={0} value={policy.cooldownSeconds} onChange={(e) => setPolicy({ ...policy, cooldownSeconds: Number(e.target.value) })} />}</Field>
-          <Field label={t("alerts.webhookIntegration")} hint={t("common.optional")}>{(id) => <Input id={id} value={policy.webhook} onChange={(e) => setPolicy({ ...policy, webhook: e.target.value })} />}</Field>
+          <Field label={t("alerts.cooldown")}>
+            {(id) => (
+              <Input
+                id={id}
+                type="number"
+                min={0}
+                value={policy.cooldownSeconds}
+                onChange={(e) => setPolicy({ ...policy, cooldownSeconds: Number(e.target.value) })}
+              />
+            )}
+          </Field>
+          <Field label={t("alerts.webhookIntegration")} hint={t("common.optional")}>
+            {(id) => (
+              <Input
+                id={id}
+                value={policy.webhook}
+                onChange={(e) => setPolicy({ ...policy, webhook: e.target.value })}
+              />
+            )}
+          </Field>
         </div>
       </Sheet>
     </div>

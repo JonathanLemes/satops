@@ -11,7 +11,17 @@ export function Panel({ className, children, ...props }: React.HTMLAttributes<HT
   );
 }
 
-export function PanelHeader({ title, subtitle, actions, className }: { title: React.ReactNode; subtitle?: React.ReactNode; actions?: React.ReactNode; className?: string }) {
+export function PanelHeader({
+  title,
+  subtitle,
+  actions,
+  className,
+}: {
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  actions?: React.ReactNode;
+  className?: string;
+}) {
   return (
     <header className={cn("flex flex-wrap items-center gap-x-3 gap-y-2 px-5 pb-3 pt-4", className)}>
       <div className="flex min-w-0 flex-1 basis-[200px] flex-col gap-0.5">
@@ -23,21 +33,42 @@ export function PanelHeader({ title, subtitle, actions, className }: { title: Re
   );
 }
 
-export function PageHeader({ title, subtitle, actions }: { title: React.ReactNode; subtitle?: React.ReactNode; actions?: React.ReactNode }) {
+export function PageHeader({
+  title,
+  subtitle,
+  actions,
+}: {
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  actions?: React.ReactNode;
+}) {
   return (
     <div data-page-header className="flex min-h-10 flex-wrap items-center gap-x-6 gap-y-3">
       <div className="flex min-w-0 flex-1 basis-[280px] flex-col items-start gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
         <h1 className="text-2xl font-semibold leading-[1.35] text-text sm:text-[29px]">{title}</h1>
-        {subtitle ? <p className="text-[13px] leading-6 text-text-secondary sm:border-l sm:border-border sm:pl-4">{subtitle}</p> : null}
+        {subtitle ? (
+          <p className="text-[13px] leading-6 text-text-secondary sm:border-l sm:border-border sm:pl-4">{subtitle}</p>
+        ) : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
     </div>
   );
 }
 
-export type Tone = "neutral" | "progress" | "violet" | "teal" | "done" | "pink" | "warning" | "info" | "success" | "danger" | "primary";
+export type Tone =
+  "neutral" | "progress" | "violet" | "teal" | "done" | "pink" | "warning" | "info" | "success" | "danger" | "primary";
 
-export function Tag({ tone = "neutral", children, dot = true, className }: { tone?: Tone; children: React.ReactNode; dot?: boolean; className?: string }) {
+export function Tag({
+  tone = "neutral",
+  children,
+  dot = true,
+  className,
+}: {
+  tone?: Tone;
+  children: React.ReactNode;
+  dot?: boolean;
+  className?: string;
+}) {
   return (
     <span
       className={cn(
@@ -123,7 +154,12 @@ export function StatusTag({ status, className }: { status: string | null | undef
 
 export function Kbd({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <kbd className={cn("inline-flex h-[22px] min-w-[22px] items-center justify-center whitespace-nowrap rounded bg-surface-3 px-1.5 font-sans text-[11px] font-medium text-text-secondary", className)}>
+    <kbd
+      className={cn(
+        "inline-flex h-[22px] min-w-[22px] items-center justify-center whitespace-nowrap rounded bg-surface-3 px-1.5 font-sans text-[11px] font-medium text-text-secondary",
+        className,
+      )}
+    >
       {children}
     </kbd>
   );
@@ -140,7 +176,10 @@ export function Avatar({ name, size = 32, className }: { name: string; size?: nu
     <span
       aria-hidden
       style={{ width: size, height: size, fontSize: size * 0.36 }}
-      className={cn("inline-flex shrink-0 items-center justify-center rounded-full bg-primary-soft font-heading font-semibold text-primary-soft-foreground", className)}
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center rounded-full bg-primary-soft font-heading font-semibold text-primary-soft-foreground",
+        className,
+      )}
     >
       {initials}
     </span>
@@ -169,7 +208,12 @@ export function Segmented<T extends string>({
     const measure = () => {
       const selected = element.querySelector<HTMLButtonElement>('[role="tab"][aria-selected="true"]');
       if (!selected) return setIndicator(null);
-      setIndicator({ left: selected.offsetLeft, top: selected.offsetTop, width: selected.offsetWidth, height: selected.offsetHeight });
+      setIndicator({
+        left: selected.offsetLeft,
+        top: selected.offsetTop,
+        width: selected.offsetWidth,
+        height: selected.offsetHeight,
+      });
     };
     measure();
     if (typeof ResizeObserver === "undefined") return;
@@ -179,12 +223,21 @@ export function Segmented<T extends string>({
   }, [value, options]);
 
   return (
-    <div ref={root} role="tablist" aria-label={label} className={cn("relative isolate inline-flex items-center gap-1 rounded-lg bg-surface-2 p-[3px]", className)}>
+    <div
+      ref={root}
+      role="tablist"
+      aria-label={label}
+      className={cn("relative isolate inline-flex items-center gap-1 rounded-lg bg-surface-2 p-[3px]", className)}
+    >
       {indicator ? (
         <span
           aria-hidden="true"
           className="pointer-events-none absolute left-0 top-0 rounded-md bg-surface transition-[transform,width,height] duration-[220ms] ease-[var(--ease-out)] motion-reduce:transition-none"
-          style={{ width: indicator.width, height: indicator.height, transform: `translate(${indicator.left}px, ${indicator.top}px)` }}
+          style={{
+            width: indicator.width,
+            height: indicator.height,
+            transform: `translate(${indicator.left}px, ${indicator.top}px)`,
+          }}
         />
       ) : null}
       {options.map((o) => (
@@ -264,7 +317,15 @@ export function ErrorState({ message, onRetry }: { message?: string; onRetry?: (
   );
 }
 
-export function KV({ label, value, className }: { label: React.ReactNode; value: React.ReactNode; className?: string }) {
+export function KV({
+  label,
+  value,
+  className,
+}: {
+  label: React.ReactNode;
+  value: React.ReactNode;
+  className?: string;
+}) {
   return (
     <div className={cn("flex items-baseline justify-between gap-3 text-[13px]", className)}>
       <span className="shrink-0 text-text-muted">{label}</span>
@@ -274,15 +335,35 @@ export function KV({ label, value, className }: { label: React.ReactNode; value:
 }
 
 export function SectionLabel({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <p className={cn("text-[11px] font-semibold uppercase tracking-wide text-text-muted", className)}>{children}</p>;
+  return (
+    <p className={cn("text-[11px] font-semibold uppercase tracking-wide text-text-muted", className)}>{children}</p>
+  );
 }
 
-export function Notice({ tone = "info", children, className }: { tone?: "info" | "warning" | "danger" | "success"; children: React.ReactNode; className?: string }) {
+export function Notice({
+  tone = "info",
+  children,
+  className,
+}: {
+  tone?: "info" | "warning" | "danger" | "success";
+  children: React.ReactNode;
+  className?: string;
+}) {
   const tones = {
     info: "bg-info-soft text-info",
     warning: "bg-warning-soft text-warning",
     danger: "bg-danger-soft text-danger",
     success: "bg-success-soft text-success",
   };
-  return <div className={cn("flex items-start gap-2.5 rounded-md px-4 py-3 text-[13px] leading-relaxed", tones[tone], className)}>{children}</div>;
+  return (
+    <div
+      className={cn(
+        "flex items-start gap-2.5 rounded-md px-4 py-3 text-[13px] leading-relaxed",
+        tones[tone],
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
 }

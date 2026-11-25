@@ -60,7 +60,10 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
         </Select>
       </label>
       <span
-        className={cn("hidden items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] sm:inline-flex", connected ? "tone tone-success" : "tone tone-warning")}
+        className={cn(
+          "hidden items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] sm:inline-flex",
+          connected ? "tone tone-success" : "tone tone-warning",
+        )}
         role="status"
         aria-live="polite"
       >
@@ -70,9 +73,16 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
       <div className="flex-1" />
       <Menu>
         <MenuTrigger asChild>
-          <Button variant="ghost" size="icon" aria-label={`${t("topbar.alerts")} (${firing.length})`} className="relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={`${t("topbar.alerts")} (${firing.length})`}
+            className="relative"
+          >
             <Bell size={16} />
-            {firing.length ? <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-danger" aria-hidden /> : null}
+            {firing.length ? (
+              <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-danger" aria-hidden />
+            ) : null}
           </Button>
         </MenuTrigger>
         <MenuContent className="w-80">
@@ -96,7 +106,10 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
         <MenuContent>
           {LOCALES.map((l) => (
             <MenuItem key={l.value} onSelect={() => setLocale(l.value)}>
-              <span aria-hidden className={cn("size-1.5 rounded-full", l.value === locale ? "bg-primary" : "bg-transparent")} />
+              <span
+                aria-hidden
+                className={cn("size-1.5 rounded-full", l.value === locale ? "bg-primary" : "bg-transparent")}
+              />
               {l.label}
             </MenuItem>
           ))}
@@ -106,10 +119,16 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
       {me ? (
         <Menu>
           <MenuTrigger asChild>
-            <button type="button" className="flex h-9 shrink-0 items-center gap-2.5 rounded-md text-left hover:bg-surface-2" aria-label={t("topbar.account")}>
+            <button
+              type="button"
+              className="flex h-9 shrink-0 items-center gap-2.5 rounded-md text-left hover:bg-surface-2"
+              aria-label={t("topbar.account")}
+            >
               <span className="hidden min-w-0 flex-col gap-0.5 text-right md:flex">
                 <span className="truncate text-xs font-semibold leading-4 text-text">{me.user.name}</span>
-                <span className="text-[10px] leading-[14px] text-text-secondary">{t(`settings.roles.${me.user.role as "viewer"}`)}</span>
+                <span className="text-[10px] leading-[14px] text-text-secondary">
+                  {t(`settings.roles.${me.user.role as "viewer"}`)}
+                </span>
               </span>
               <Avatar name={me.user.name} size={34} />
             </button>

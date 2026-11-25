@@ -3,7 +3,15 @@ import { useState } from "react";
 import { useI18n } from "@/i18n";
 import { cn, formatBtc, formatSats, shortHash } from "@/lib/utils";
 
-export function Sats({ value, className, signed }: { value: number | null | undefined; className?: string; signed?: boolean }) {
+export function Sats({
+  value,
+  className,
+  signed,
+}: {
+  value: number | null | undefined;
+  className?: string;
+  signed?: boolean;
+}) {
   const { locale } = useI18n();
   const prefix = signed && value && value > 0 ? "+" : "";
   return (
@@ -14,7 +22,17 @@ export function Sats({ value, className, signed }: { value: number | null | unde
   );
 }
 
-export function Hash({ value, size = 8, className, copy = true }: { value: string | null | undefined; size?: number; className?: string; copy?: boolean }) {
+export function Hash({
+  value,
+  size = 8,
+  className,
+  copy = true,
+}: {
+  value: string | null | undefined;
+  size?: number;
+  className?: string;
+  copy?: boolean;
+}) {
   const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   if (!value) return <span className="text-text-muted">-</span>;
@@ -76,23 +94,41 @@ export interface TimelineItem {
 
 export function Timeline({ items, className }: { items: TimelineItem[]; className?: string }) {
   const { locale } = useI18n();
-  const dot = { default: "bg-border-strong", success: "bg-success", warning: "bg-warning", danger: "bg-danger", primary: "bg-primary" };
+  const dot = {
+    default: "bg-border-strong",
+    success: "bg-success",
+    warning: "bg-warning",
+    danger: "bg-danger",
+    primary: "bg-primary",
+  };
   return (
     <ol className={cn("relative flex flex-col", className)}>
       {items.map((item, i) => (
         <li key={item.id} className="relative flex gap-4 pb-5 last:pb-0">
-          {i < items.length - 1 ? <span aria-hidden className="absolute left-[5px] top-4 h-full w-px bg-border" /> : null}
-          <span aria-hidden className={cn("relative mt-1.5 size-[11px] shrink-0 rounded-full ring-4 ring-surface", dot[item.tone ?? "default"])} />
+          {i < items.length - 1 ? (
+            <span aria-hidden className="absolute left-[5px] top-4 h-full w-px bg-border" />
+          ) : null}
+          <span
+            aria-hidden
+            className={cn(
+              "relative mt-1.5 size-[11px] shrink-0 rounded-full ring-4 ring-surface",
+              dot[item.tone ?? "default"],
+            )}
+          />
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3">
               <span className="text-[13px] font-medium text-text">{item.title}</span>
               {item.time ? (
                 <time className="text-[11px] text-text-muted" dateTime={item.time}>
-                  {new Intl.DateTimeFormat(locale, { dateStyle: "short", timeStyle: "medium" }).format(new Date(item.time))}
+                  {new Intl.DateTimeFormat(locale, { dateStyle: "short", timeStyle: "medium" }).format(
+                    new Date(item.time),
+                  )}
                 </time>
               ) : null}
             </div>
-            {item.description ? <div className="text-xs leading-relaxed text-text-secondary">{item.description}</div> : null}
+            {item.description ? (
+              <div className="text-xs leading-relaxed text-text-secondary">{item.description}</div>
+            ) : null}
             {item.meta}
           </div>
         </li>
@@ -101,10 +137,21 @@ export function Timeline({ items, className }: { items: TimelineItem[]; classNam
   );
 }
 
-export function JsonView({ value, className, maxHeight = 320 }: { value: unknown; className?: string; maxHeight?: number }) {
+export function JsonView({
+  value,
+  className,
+  maxHeight = 320,
+}: {
+  value: unknown;
+  className?: string;
+  maxHeight?: number;
+}) {
   return (
     <pre
-      className={cn("overflow-auto rounded-md bg-surface-2 p-3 font-mono text-[11.5px] leading-relaxed text-text-secondary", className)}
+      className={cn(
+        "overflow-auto rounded-md bg-surface-2 p-3 font-mono text-[11.5px] leading-relaxed text-text-secondary",
+        className,
+      )}
       style={{ maxHeight }}
     >
       {JSON.stringify(value, null, 2)}
@@ -115,7 +162,17 @@ export function JsonView({ value, className, maxHeight = 320 }: { value: unknown
 export function EventInspector({
   event,
 }: {
-  event: { eventType: string; seq: number; aggregateType: string; aggregateId: string; correlationId: string; causationId?: string | null; observedAt: string; schemaVersion: number; payload?: unknown };
+  event: {
+    eventType: string;
+    seq: number;
+    aggregateType: string;
+    aggregateId: string;
+    correlationId: string;
+    causationId?: string | null;
+    observedAt: string;
+    schemaVersion: number;
+    payload?: unknown;
+  };
 }) {
   const { t } = useI18n();
   return (

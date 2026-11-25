@@ -30,12 +30,14 @@ export interface NavItem {
 
 export interface NavGroup {
   label: TranslationKey;
+  permission: string;
   items: NavItem[];
 }
 
 export const NAV: NavGroup[] = [
   {
     label: "nav.customer",
+    permission: "workspace.customer",
     items: [
       { to: "/", label: "nav.overview", icon: LayoutDashboard, permission: "workspace.customer", end: true },
       { to: "/wallets", label: "nav.wallets", icon: Wallet, permission: "wallet.read" },
@@ -48,8 +50,15 @@ export const NAV: NavGroup[] = [
   },
   {
     label: "nav.engineering",
+    permission: "workspace.engineering",
     items: [
-      { to: "/engineering", label: "nav.engineeringOverview", icon: BarChart3, permission: "workspace.engineering", end: true },
+      {
+        to: "/engineering",
+        label: "nav.engineeringOverview",
+        icon: BarChart3,
+        permission: "workspace.engineering",
+        end: true,
+      },
       { to: "/engineering/environments", label: "nav.environments", icon: Layers, permission: "workspace.engineering" },
       { to: "/engineering/nodes", label: "nav.nodes", icon: Server, permission: "blockchain.read" },
       { to: "/engineering/blockchain", label: "nav.blockchain", icon: Boxes, permission: "blockchain.read" },
@@ -62,5 +71,10 @@ export const NAV: NavGroup[] = [
   },
 ];
 
-export const SETTINGS_ITEM: NavItem = { to: "/settings", label: "nav.settings", icon: Settings, permission: "dashboard.read" };
+export const SETTINGS_ITEM: NavItem = {
+  to: "/settings",
+  label: "nav.settings",
+  icon: Settings,
+  permission: "dashboard.read",
+};
 export const ACTIVITY_ICON = Activity;

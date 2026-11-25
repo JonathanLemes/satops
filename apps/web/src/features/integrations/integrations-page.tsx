@@ -73,7 +73,22 @@ const PUT_SECRET = graphql(`
   }
 `);
 
-const FIELDS: Record<string, { key: string; label: "integrations.host" | "integrations.port" | "integrations.zmqEndpoint" | "integrations.baseUrl" | "integrations.url" | "integrations.timeout" | "integrations.interval" | "integrations.priority"; type?: "number" }[]> = {
+const FIELDS: Record<
+  string,
+  {
+    key: string;
+    label:
+      | "integrations.host"
+      | "integrations.port"
+      | "integrations.zmqEndpoint"
+      | "integrations.baseUrl"
+      | "integrations.url"
+      | "integrations.timeout"
+      | "integrations.interval"
+      | "integrations.priority";
+    type?: "number";
+  }[]
+> = {
   bitcoin_core: [
     { key: "host", label: "integrations.host" },
     { key: "port", label: "integrations.port", type: "number" },
@@ -105,7 +120,14 @@ export default function IntegrationsPage() {
   const [remove] = useMutation(DELETE);
   const [putSecret] = useMutation(PUT_SECRET);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [editing, setEditing] = useState<null | { name: string; kind: string; secretRef: string; enabled: boolean; config: Record<string, unknown>; lockVersion?: number }>(null);
+  const [editing, setEditing] = useState<null | {
+    name: string;
+    kind: string;
+    secretRef: string;
+    enabled: boolean;
+    config: Record<string, unknown>;
+    lockVersion?: number;
+  }>(null);
   const [secretOpen, setSecretOpen] = useState(false);
   const [secret, setSecret] = useState({ name: "", value: "" });
   const [toDelete, setToDelete] = useState<string | null>(null);
@@ -133,7 +155,10 @@ export default function IntegrationsPage() {
               </Button>
             ) : null}
             {can("integration.manage") ? (
-              <Button variant="primary" onClick={() => setEditing({ name: "", kind: "demo_fintech", secretRef: "", enabled: true, config: {} })}>
+              <Button
+                variant="primary"
+                onClick={() => setEditing({ name: "", kind: "demo_fintech", secretRef: "", enabled: true, config: {} })}
+              >
                 <Plus /> {t("integrations.add")}
               </Button>
             ) : null}
@@ -151,10 +176,26 @@ export default function IntegrationsPage() {
           empty={{ title: t("common.noResults") }}
           columns={[
             { key: "name", header: t("common.name"), primary: true, cell: (i) => i.name },
-            { key: "kind", header: t("common.kind"), cell: (i) => <Tag tone="neutral" dot={false}>{i.kind}</Tag> },
-            { key: "status", header: t("common.status"), cell: (i) => <StatusTag status={i.enabled ? i.status : "skipped"} /> },
+            {
+              key: "kind",
+              header: t("common.kind"),
+              cell: (i) => (
+                <Tag tone="neutral" dot={false}>
+                  {i.kind}
+                </Tag>
+              ),
+            },
+            {
+              key: "status",
+              header: t("common.status"),
+              cell: (i) => <StatusTag status={i.enabled ? i.status : "skipped"} />,
+            },
             { key: "sync", header: t("integrations.lastSync"), cell: (i) => relativeTime(i.lastSyncAt, locale) },
-            { key: "error", header: t("integrations.lastError"), cell: (i) => <span className="line-clamp-1 max-w-xs text-danger">{i.lastError ?? ""}</span> },
+            {
+              key: "error",
+              header: t("integrations.lastError"),
+              cell: (i) => <span className="line-clamp-1 max-w-xs text-danger">{i.lastError ?? ""}</span>,
+            },
             {
               key: "test",
               header: "",
@@ -174,7 +215,13 @@ export default function IntegrationsPage() {
           ]}
         />
       </Panel>
-      <Sheet open={!!selected} onOpenChange={(o) => !o && setSelectedId(null)} title={selected?.name ?? ""} description={selected?.kind} width={640}>
+      <Sheet
+        open={!!selected}
+        onOpenChange={(o) => !o && setSelectedId(null)}
+        title={selected?.name ?? ""}
+        description={selected?.kind}
+        width={640}
+      >
         {selected ? (
           <div className="flex flex-col gap-5">
             <div className="flex flex-wrap gap-2">
@@ -184,13 +231,22 @@ export default function IntegrationsPage() {
               {can("integration.manage") ? (
                 <Button
                   onClick={() =>
-                    setEditing({ name: selected.name, kind: selected.kind, secretRef: selected.secretRef ?? "", enabled: selected.enabled, config: selected.config ?? {}, lockVersion: selected.lockVersion })
+                    setEditing({
+                      name: selected.name,
+                      kind: selected.kind,
+                      secretRef: selected.secretRef ?? "",
+                      enabled: selected.enabled,
+                      config: selected.config ?? {},
+                      lockVersion: selected.lockVersion,
+                    })
                   }
                 >
                   {t("common.edit")}
                 </Button>
               ) : null}
-              <Link to={`/engineering/configuration/${CONFIG_KIND[selected.kind] ?? "FinancialIntegration"}/${selected.name}`}>
+              <Link
+                to={`/engineering/configuration/${CONFIG_KIND[selected.kind] ?? "FinancialIntegration"}/${selected.name}`}
+              >
                 <Button>
                   <FileCode2 /> {t("integrations.editAsCode")}
                 </Button>
@@ -227,7 +283,12 @@ export default function IntegrationsPage() {
             </div>
             {selected.kind === "csv_import" ? <Notice tone="info">{t("integrations.csvHint")}</Notice> : null}
             {selected.capabilities.includes("webhooks.inbound") ? (
-              <KV label={t("integrations.webhookUrl")} value={<span className="font-mono text-xs">{`/api/webhooks/${environment?.slug}/${selected.name}`}</span>} />
+              <KV
+                label={t("integrations.webhookUrl")}
+                value={
+                  <span className="font-mono text-xs">{`/api/webhooks/${environment?.slug}/${selected.name}`}</span>
+                }
+              />
             ) : null}
             <KV label={t("common.status")} value={<StatusTag status={selected.status} />} />
             <KV label={t("integrations.secretRef")} value={selected.secretRef ?? "-"} />
@@ -282,7 +343,14 @@ export default function IntegrationsPage() {
                 await save({
                   variables: {
                     environmentId,
-                    input: { name: editing.name, kind: editing.kind, config: editing.config, secretRef: editing.secretRef || null, enabled: editing.enabled, lockVersion: editing.lockVersion },
+                    input: {
+                      name: editing.name,
+                      kind: editing.kind,
+                      config: editing.config,
+                      secretRef: editing.secretRef || null,
+                      enabled: editing.enabled,
+                      lockVersion: editing.lockVersion,
+                    },
                   },
                 });
                 toast.success(t("common.saved"));
@@ -300,11 +368,23 @@ export default function IntegrationsPage() {
         {editing ? (
           <div className="flex flex-col gap-4">
             <Field label={t("common.name")} hint={t("validation.slug")}>
-              {(id) => <Input id={id} value={editing.name} disabled={!!editing.lockVersion} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />}
+              {(id) => (
+                <Input
+                  id={id}
+                  value={editing.name}
+                  disabled={!!editing.lockVersion}
+                  onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                />
+              )}
             </Field>
             <Field label={t("common.kind")}>
               {(id) => (
-                <Select id={id} value={editing.kind} disabled={!!editing.lockVersion} onChange={(e) => setEditing({ ...editing, kind: e.target.value, config: {} })}>
+                <Select
+                  id={id}
+                  value={editing.kind}
+                  disabled={!!editing.lockVersion}
+                  onChange={(e) => setEditing({ ...editing, kind: e.target.value, config: {} })}
+                >
                   {data?.integrationKinds.map((k) => (
                     <option key={k} value={k}>
                       {k}
@@ -315,7 +395,11 @@ export default function IntegrationsPage() {
             </Field>
             <Field label={t("integrations.secretRef")} hint={t("integrations.secretHint")}>
               {(id) => (
-                <Select id={id} value={editing.secretRef} onChange={(e) => setEditing({ ...editing, secretRef: e.target.value })}>
+                <Select
+                  id={id}
+                  value={editing.secretRef}
+                  onChange={(e) => setEditing({ ...editing, secretRef: e.target.value })}
+                >
                   <option value="">{t("common.none")}</option>
                   {data?.secretNames.map((s) => (
                     <option key={s} value={s}>
@@ -332,7 +416,15 @@ export default function IntegrationsPage() {
                     id={id}
                     type={f.type ?? "text"}
                     value={String(editing.config[f.key] ?? "")}
-                    onChange={(e) => setEditing({ ...editing, config: { ...editing.config, [f.key]: f.type === "number" ? Number(e.target.value) : e.target.value } })}
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        config: {
+                          ...editing.config,
+                          [f.key]: f.type === "number" ? Number(e.target.value) : e.target.value,
+                        },
+                      })
+                    }
                   />
                 )}
               </Field>
@@ -372,9 +464,21 @@ export default function IntegrationsPage() {
               </Tag>
             ))}
           </ul>
-          <Field label={t("integrations.secretName")}>{(id) => <Input id={id} value={secret.name} onChange={(e) => setSecret({ ...secret, name: e.target.value })} />}</Field>
+          <Field label={t("integrations.secretName")}>
+            {(id) => (
+              <Input id={id} value={secret.name} onChange={(e) => setSecret({ ...secret, name: e.target.value })} />
+            )}
+          </Field>
           <Field label={t("integrations.secretValue")}>
-            {(id) => <Input id={id} type="password" autoComplete="off" value={secret.value} onChange={(e) => setSecret({ ...secret, value: e.target.value })} />}
+            {(id) => (
+              <Input
+                id={id}
+                type="password"
+                autoComplete="off"
+                value={secret.value}
+                onChange={(e) => setSecret({ ...secret, value: e.target.value })}
+              />
+            )}
           </Field>
         </div>
       </Sheet>

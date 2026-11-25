@@ -54,12 +54,29 @@ export function LoginPage() {
           </div>
           <Field label={t("login.email")} error={form.formState.errors.email ? t("validation.email") : undefined}>
             {(id, desc) => (
-              <Input id={id} type="email" autoComplete="username" aria-describedby={desc} aria-invalid={!!form.formState.errors.email} {...form.register("email")} />
+              <Input
+                id={id}
+                type="email"
+                autoComplete="username"
+                aria-describedby={desc}
+                aria-invalid={!!form.formState.errors.email}
+                {...form.register("email")}
+              />
             )}
           </Field>
-          <Field label={t("login.password")} error={form.formState.errors.password ? t("validation.required") : undefined}>
+          <Field
+            label={t("login.password")}
+            error={form.formState.errors.password ? t("validation.required") : undefined}
+          >
             {(id, desc) => (
-              <Input id={id} type="password" autoComplete="current-password" aria-describedby={desc} aria-invalid={!!form.formState.errors.password} {...form.register("password")} />
+              <Input
+                id={id}
+                type="password"
+                autoComplete="current-password"
+                aria-describedby={desc}
+                aria-invalid={!!form.formState.errors.password}
+                {...form.register("password")}
+              />
             )}
           </Field>
           {error ? (

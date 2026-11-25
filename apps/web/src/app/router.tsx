@@ -31,6 +31,11 @@ const page = (el: React.ReactNode, permission?: string) => {
   return permission ? <RequirePermission permission={permission}>{content}</RequirePermission> : content;
 };
 
+const engineering = (el: React.ReactNode, permission: string) => {
+  const content = page(el, permission);
+  return <RequirePermission permission="workspace.engineering">{content}</RequirePermission>;
+};
+
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
   {
@@ -47,17 +52,17 @@ export const router = createBrowserRouter([
       { path: "alerts", element: page(<AlertsPage />, "alert.read") },
       { path: "learn", element: page(<LearnPage />) },
       { path: "engineering", element: page(<DashboardPage workspace="engineering" />, "workspace.engineering") },
-      { path: "engineering/environments", element: page(<EnvironmentsPage />, "workspace.engineering") },
-      { path: "engineering/nodes", element: page(<NodesPage />, "blockchain.read") },
-      { path: "engineering/blockchain", element: page(<BlockchainPage />, "blockchain.read") },
-      { path: "engineering/integrations", element: page(<IntegrationsPage />, "integration.read") },
-      { path: "engineering/ledger", element: page(<LedgerPage />, "ledger.read") },
-      { path: "engineering/experiments", element: page(<ExperimentsPage />, "experiment.read") },
-      { path: "engineering/experiments/runs/:id", element: page(<ExperimentRunPage />, "experiment.read") },
-      { path: "engineering/configuration", element: page(<ConfigurationPage />, "config.read") },
-      { path: "engineering/configuration/:kind/:name", element: page(<ConfigEditorPage />, "config.read") },
-      { path: "engineering/configuration/new", element: page(<ConfigEditorPage />, "config.apply") },
-      { path: "engineering/jobs", element: page(<JobsPage />, "jobs.read") },
+      { path: "engineering/environments", element: engineering(<EnvironmentsPage />, "workspace.engineering") },
+      { path: "engineering/nodes", element: engineering(<NodesPage />, "blockchain.read") },
+      { path: "engineering/blockchain", element: engineering(<BlockchainPage />, "blockchain.read") },
+      { path: "engineering/integrations", element: engineering(<IntegrationsPage />, "integration.read") },
+      { path: "engineering/ledger", element: engineering(<LedgerPage />, "ledger.read") },
+      { path: "engineering/experiments", element: engineering(<ExperimentsPage />, "experiment.read") },
+      { path: "engineering/experiments/runs/:id", element: engineering(<ExperimentRunPage />, "experiment.read") },
+      { path: "engineering/configuration", element: engineering(<ConfigurationPage />, "config.read") },
+      { path: "engineering/configuration/:kind/:name", element: engineering(<ConfigEditorPage />, "config.read") },
+      { path: "engineering/configuration/new", element: engineering(<ConfigEditorPage />, "config.apply") },
+      { path: "engineering/jobs", element: engineering(<JobsPage />, "jobs.read") },
       { path: "settings", element: page(<SettingsPage />) },
       { path: "*", element: <Navigate to="/" replace /> },
     ],
