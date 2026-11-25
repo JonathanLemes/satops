@@ -1,0 +1,152 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  ELIXIR_VERSION: "1.18.4"
+  OTP_VERSION: "27.3.4"
+  NODE_VERSION: "24"
+
+jobs:
+  backend-fast:
+    name: Backend fast checks
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: apps/api
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+      - uses: actions/cache@v4
+        with:
+          path: |
+            apps/api/deps
+            apps/api/_build
+          key: mix-${{ runner.os }}-${{ hashFiles('apps/api/mix.lock') }}
+      - run: mix deps.get
+      - run: mix compile --warnings-as-errors
+      - run: mix format --check-formatted
+      - run: mix credo --strict
+      - run: mix deps.audit
+      - run: mix hex.audit
+      - run: mix test --exclude integration --exclude bitcoin
+
+  backend-integration:
+    name: Backend integration (PostgreSQL and Bitcoin Core regtest)
+    runs-on: ubuntu-24.04
+    needs: backend-fast
+    defaults:
+      run:
+        working-directory: apps/api
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 20
+    env:
+      MIX_ENV: test
+      TEST_DATABASE_URL: ecto://postgres:postgres@localhost:5432/satops_test
+      BITCOIN_TEST_RPC_URL: http://127.0.0.1:18443
+      BITCOIN_TEST_RPC_USER: satops
+      BITCOIN_TEST_RPC_PASSWORD: satops-ci
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start Bitcoin Core regtest
+        run: |
+          docker run -d --name bitcoin-0 -p 18443:18443 -p 28332:28332 \
+            -e BITCOIN_RPC_USER=satops -e BITCOIN_RPC_PASSWORD=satops-ci \
+            -v $GITHUB_WORKSPACE/deploy/docker/bitcoin/entrypoint.sh:/satops-entrypoint.sh:ro \
+            --entrypoint /satops-entrypoint.sh bitcoin/bitcoin:29.0
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+      - uses: actions/cache@v4
+        with:
+          path: |
+            apps/api/deps
+            apps/api/_build
+          key: mix-${{ runner.os }}-${{ hashFiles('apps/api/mix.lock') }}
+      - run: mix deps.get
+      - name: Wait for regtest RPC
+        run: |
+          for i in $(seq 1 30); do
+            curl -s --user satops:satops-ci -H 'content-type: text/plain' \
+              --data '{"jsonrpc":"1.0","id":"ci","method":"getblockchaininfo","params":[]}' \
+              http://127.0.0.1:18443 && break
+            sleep 2
+          done
+      - run: mix coveralls.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: apps/api/cover
+
+  frontend:
+    name: Frontend and demo fintech
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @satops/web typecheck
+      - run: pnpm --filter @satops/web lint
+      - run: pnpm --filter @satops/web format:check
+      - run: pnpm --filter @satops/web test
+      - run: pnpm --filter @satops/web build
+      - run: pnpm --filter @satops/demo-fintech typecheck
+      - run: pnpm --filter @satops/demo-fintech test
+
+  infrastructure:
+    name: Infrastructure validation
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dockerfile lint
+        run: |
+          for f in deploy/docker/*.Dockerfile examples/demo-fintech/Dockerfile; do
+            docker run --rm -i hadolint/hadolint:v2.12.0 hadolint --ignore DL3008 --ignore DL3016 - < "$f"
+          done
+      - name: Compose validation
+        run: cp .env.example .env && docker compose config -q
+      - name: Helm lint and render
+        run: |
+          VALUES="--set secrets.secretKeyBase=x,secrets.satopsSecretKey=x,secrets.postgresPassword=x,secrets.satopsDbPassword=x,secrets.demoFintechDbPassword=x,secrets.bitcoinRpcPassword=x,secrets.demoFintechApiToken=x,secrets.demoFintechWebhookSecret=x"
+          docker run --rm -v $PWD/deploy/helm/satops:/chart alpine/helm:3.18.6 lint /chart $VALUES
+          docker run --rm -v $PWD/deploy/helm/satops:/chart alpine/helm:3.18.6 template satops /chart -n satops-system $VALUES > rendered.yaml
+      - name: Validate manifests
+        run: docker run --rm -v $PWD:/w ghcr.io/yannh/kubeconform:v0.7.0 -strict -summary /w/rendered.yaml
+      - name: Build images
+        run: docker compose build
+      - name: Scan images
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "0"

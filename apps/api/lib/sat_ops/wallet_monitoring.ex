@@ -138,7 +138,7 @@ defmodule SatOps.WalletMonitoring do
          Repo.insert_all("watched_addresses", rows, on_conflict: :nothing, conflict_target: [:wallet_id, :address])}
 
       invalid ->
-        {:error, "invalid regtest addresses: #{invalid |> Enum.map(& &1.address) |> Enum.join(", ")}"}
+        {:error, "invalid regtest addresses: #{Enum.map_join(invalid, ", ", & &1.address)}"}
     end
   end
 

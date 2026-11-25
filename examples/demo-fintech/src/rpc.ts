@@ -10,6 +10,18 @@ export class RpcError extends Error {
 }
 
 export async function rpc<T>(method: string, params: unknown[] = [], wallet?: string): Promise<T> {
+  try {
+    return await rawRpc<T>(method, params, wallet);
+  } catch (error) {
+    if (wallet && error instanceof RpcError && error.code === -18) {
+      await ensureWallet();
+      return rawRpc<T>(method, params, wallet);
+    }
+    throw error;
+  }
+}
+
+async function rawRpc<T>(method: string, params: unknown[], wallet?: string): Promise<T> {
   const url = wallet ? `${config.rpcUrl}/wallet/${encodeURIComponent(wallet)}` : config.rpcUrl;
   const res = await fetch(url, {
     method: "POST",
@@ -31,12 +43,12 @@ export async function rpc<T>(method: string, params: unknown[] = [], wallet?: st
 
 export async function ensureWallet(): Promise<void> {
   try {
-    await rpc("createwallet", [config.wallet]);
+    await rawRpc("createwallet", [config.wallet, false, false, "", false, true, true]);
   } catch (error) {
     if (!(error instanceof RpcError)) throw error;
     if (error.code === -4) {
       try {
-        await rpc("loadwallet", [config.wallet]);
+        await rawRpc("loadwallet", [config.wallet, true]);
       } catch (inner) {
         if (!(inner instanceof RpcError && inner.code === -35)) throw inner;
       }

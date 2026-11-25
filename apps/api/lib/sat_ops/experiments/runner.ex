@@ -387,7 +387,9 @@ defmodule SatOps.Experiments.Runner do
     SatOps.Realtime.broadcast(run.environment_id, "experiment.progress", %{"runId" => run.id, "status" => run.status})
   end
 
-  defp crash_message({%{__exception__: true} = e, _stack}), do: "action crashed: " <> (e |> Exception.message() |> String.split("\n") |> hd())
+  defp crash_message({%{__exception__: true} = e, _stack}),
+    do: "action crashed: " <> (e |> Exception.message() |> String.split("\n") |> hd())
+
   defp crash_message(reason), do: "action crashed: " <> (reason |> inspect() |> String.slice(0, 300))
 
   defp format(reason) when is_binary(reason), do: reason

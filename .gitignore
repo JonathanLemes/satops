@@ -12,3 +12,4 @@ test-results/
 !/benchmarks/results/.gitkeep
 .vite/
 apps/web/dist/
+tests/resilience/reports/

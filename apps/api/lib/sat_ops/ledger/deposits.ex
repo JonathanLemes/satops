@@ -7,43 +7,30 @@ defmodule SatOps.Ledger.Deposits do
   @gone ~w(conflicted replaced unknown)
 
   def decide(state, tx_status, confirmations, required, block_changed \\ false) do
-    confirmed_enough = tx_status == "confirmed" and confirmations >= required
+    final = tx_status == "confirmed" and confirmations >= required
+    decide_state(state, tx_status, final, block_changed)
+  end
 
+  defp decide_state(state, tx_status, final, _changed) when state in @inactive do
     cond do
-      state == "credited" and tx_status == "confirmed" and block_changed and confirmed_enough ->
-        [:reverse, :detect, :confirm]
-
-      state == "credited" and tx_status == "confirmed" and block_changed ->
-        [:reverse, :detect]
-
-      state in @inactive and confirmed_enough ->
-        [:detect, :confirm]
-
-      state in @inactive and tx_status in ["pending", "confirmed", "unconfirmed"] ->
-        [:detect]
-
-      state in @inactive ->
-        []
-
-      state == "detected" and confirmed_enough ->
-        [:confirm]
-
-      state == "detected" and tx_status in @gone ->
-        [:cancel]
-
-      state == "detected" ->
-        []
-
-      state == "credited" and tx_status == "confirmed" ->
-        []
-
-      state == "credited" ->
-        [:reverse]
-
-      true ->
-        []
+      final -> [:detect, :confirm]
+      tx_status in ["pending", "confirmed", "unconfirmed"] -> [:detect]
+      true -> []
     end
   end
+
+  defp decide_state("detected", tx_status, final, _changed) do
+    cond do
+      final -> [:confirm]
+      tx_status in @gone -> [:cancel]
+      true -> []
+    end
+  end
+
+  defp decide_state("credited", "confirmed", final, true), do: if(final, do: [:reverse, :detect, :confirm], else: [:reverse, :detect])
+  defp decide_state("credited", "confirmed", _final, false), do: []
+  defp decide_state("credited", _tx_status, _final, _changed), do: [:reverse]
+  defp decide_state(_state, _tx_status, _final, _changed), do: []
 
   def operation_id(txid, vout), do: "deposit:#{txid}:#{vout}"
 

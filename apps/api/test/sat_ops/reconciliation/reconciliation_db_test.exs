@@ -22,7 +22,11 @@ defmodule SatOps.ReconciliationDbTest do
           "apiVersion" => "satops.io/v1alpha1",
           "kind" => "ReconciliationPolicy",
           "metadata" => %{"name" => env.slug},
-          "spec" => %{"environmentRef" => env.slug, "sources" => ["native-ledger", "ghost"], "requiredSources" => ["native-ledger", "ghost"]}
+          "spec" => %{
+            "environmentRef" => env.slug,
+            "sources" => ["native-ledger", "ghost"],
+            "requiredSources" => ["native-ledger", "ghost"]
+          }
         },
         actor: nil
       )

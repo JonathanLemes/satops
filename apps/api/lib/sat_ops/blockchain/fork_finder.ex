@@ -22,7 +22,8 @@ defmodule SatOps.Blockchain.ForkFinder do
     |> Enum.filter(&(&1.reachable and &1.chain == "regtest"))
     |> Enum.sort_by(
       fn o ->
-        {if(Map.get(o, :initial_block_download), do: 0, else: 1), Decimal.to_integer(o.chainwork || Decimal.new(0)), -(o.priority || 100)}
+        {if(Map.get(o, :initial_block_download), do: 0, else: 1), Decimal.to_integer(o.chainwork || Decimal.new(0)),
+         -(o.priority || 100)}
       end,
       :desc
     )

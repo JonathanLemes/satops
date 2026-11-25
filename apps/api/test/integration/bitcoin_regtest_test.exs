@@ -101,7 +101,7 @@ defmodule SatOps.Integration.BitcoinRegtestTest do
     {:ok, _} = RPC.call(rpc, "generatetoaddress", [3, fresh])
     {:ok, _} = RPC.call(rpc, "reconsiderblock", [block1])
     result = sync!(env, rpc)
-    assert result.reorganized or length(Blockchain.reorganizations(env.id)) > 0
+    assert result.reorganized or Blockchain.reorganizations(env.id) != []
 
     consume_events(env)
     tx = Blockchain.get_transaction(env.id, txid)

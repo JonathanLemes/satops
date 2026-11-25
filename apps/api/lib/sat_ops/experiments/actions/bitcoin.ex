@@ -41,12 +41,12 @@ defmodule SatOps.Experiments.Actions.Bitcoin.Helpers do
   def ensure_wallet(rpc, wallet) do
     base = %{rpc | wallet: nil}
 
-    case RPC.call(base, "createwallet", [wallet]) do
+    case RPC.call(base, "createwallet", [wallet, false, false, "", false, true, true]) do
       {:ok, _} ->
         :ok
 
       {:error, {:rpc, -4, _}} ->
-        case RPC.call(base, "loadwallet", [wallet]) do
+        case RPC.call(base, "loadwallet", [wallet, true]) do
           {:ok, _} -> :ok
           {:error, {:rpc, -35, _}} -> :ok
           {:error, reason} -> {:error, reason}

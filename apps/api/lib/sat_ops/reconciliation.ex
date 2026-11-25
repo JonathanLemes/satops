@@ -210,8 +210,7 @@ defmodule SatOps.Reconciliation do
   defp unavailable_reason(sources) do
     sources
     |> Enum.filter(&(&1.status != :ok))
-    |> Enum.map(&"#{&1.name}: #{&1.error}")
-    |> Enum.join("; ")
+    |> Enum.map_join("; ", &"#{&1.name}: #{&1.error}")
     |> then(&if(&1 == "", do: nil, else: &1))
   end
 

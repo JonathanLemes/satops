@@ -35,7 +35,17 @@ defmodule SatOps.Blockchain.PureTest do
     end
 
     test "a fresh regtest chain still in initial block download is used when nothing better exists" do
-      obs = [%{reachable: true, chain: "regtest", chainwork: Decimal.new(2), initial_block_download: true, priority: 100, name: "fresh"}]
+      obs = [
+        %{
+          reachable: true,
+          chain: "regtest",
+          chainwork: Decimal.new(2),
+          initial_block_download: true,
+          priority: 100,
+          name: "fresh"
+        }
+      ]
+
       assert ForkFinder.select_reference(obs).name == "fresh"
     end
 
