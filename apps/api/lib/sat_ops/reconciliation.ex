@@ -125,8 +125,8 @@ defmodule SatOps.Reconciliation do
       rows =
         Enum.map(items, fn i ->
           %{
-            run_id: Ecto.UUID.dump!(run.id),
-            environment_id: Ecto.UUID.dump!(env.id),
+            run_id: run.id,
+            environment_id: env.id,
             match_key: i.match_key,
             state: i.state,
             discrepancy_kind: i.discrepancy_kind,

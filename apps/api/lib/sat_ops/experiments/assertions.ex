@@ -116,6 +116,21 @@ defmodule SatOps.Experiments.Assertions do
   end
 
   defp check("reconciliation.open_discrepancies", a, ctx) do
+    case Reconciliation.list_runs(ctx.env.id, 1) do
+      [%{status: "completed", finished_at: %DateTime{} = at} | _] ->
+        if ctx.run.started_at && DateTime.compare(at, ctx.run.started_at) == :lt,
+          do: {:unavailable, "no completed reconciliation since the experiment started"},
+          else: count_discrepancies(a, ctx)
+
+      [%{status: status} | _] ->
+        {:unavailable, "latest reconciliation is #{status}; open discrepancies cannot be trusted"}
+
+      [] ->
+        {:unavailable, "no reconciliation run exists"}
+    end
+  end
+
+  defp count_discrepancies(a, ctx) do
     discrepancies =
       Reconciliation.list_discrepancies(ctx.env.id, states: ["open", "investigating"], kind: a["kind"], limit: 500)
       |> Enum.filter(&(is_nil(a["source"]) or &1.evidence["source"] == a["source"]))

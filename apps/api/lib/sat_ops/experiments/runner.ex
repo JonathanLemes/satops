@@ -336,6 +336,11 @@ defmodule SatOps.Experiments.Runner do
   end
 
   defp finalize(run, status, reason) do
+    if run.status in ["created", "validating", "provisioning"] do
+      from(s in Step, where: s.run_id == ^run.id and s.status == "pending")
+      |> Repo.update_all(set: [status: "skipped", failure_reason: "not executed: #{reason}"])
+    end
+
     run = move(run, status)
     now = DateTime.utc_now()
 

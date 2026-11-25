@@ -1,0 +1,170 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: satops-api
+  labels: {{- include "satops.labels" . | nindent 4 }}
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: satops-worker
+  labels: {{- include "satops.labels" . | nindent 4 }}
+automountServiceAccountToken: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-bootstrap
+  labels: {{- include "satops.labels" . | nindent 4 }}
+data:
+  00-environment.yaml: |
+    apiVersion: satops.io/v1alpha1
+    kind: Environment
+    metadata:
+      name: default-sandbox
+    spec:
+      displayName: Default sandbox
+      network: { type: regtest, nodes: {{ .Values.sandbox.bitcoin.replicas }} }
+      ledger: { asset: BTC, confirmationPolicy: { requiredConfirmations: 3 } }
+      reconciliation: { enabled: true, interval: 5m, autoCorrect: false }
+      safety: { allowMainnet: false, allowPublicPeers: false, requireIsolatedNamespace: true }
+  {{- range $i, $_ := until (int .Values.sandbox.bitcoin.replicas) }}
+  1{{ $i }}-bitcoin-{{ $i }}.yaml: |
+    apiVersion: satops.io/v1alpha1
+    kind: BitcoinIntegration
+    metadata:
+      name: bitcoin-{{ $i }}
+    spec:
+      environmentRef: default-sandbox
+      network: regtest
+      priority: {{ add 100 (mul $i 10) }}
+      rpc: { host: bitcoin-{{ $i }}.bitcoin.{{ $.Values.sandbox.namespace }}.svc.cluster.local, port: 18443, secretRef: bitcoin-rpc }
+      zmq: { enabled: true, endpoint: "tcp://bitcoin-{{ $i }}.bitcoin.{{ $.Values.sandbox.namespace }}.svc.cluster.local:28332" }
+      monitoring: { reconcileInterval: 15s, timeout: 5s }
+  {{- end }}
+  {{- if .Values.sandbox.demoFintech.enabled }}
+  30-demo-fintech.yaml: |
+    apiVersion: satops.io/v1alpha1
+    kind: FinancialIntegration
+    metadata:
+      name: demo-fintech
+    spec:
+      environmentRef: default-sandbox
+      type: demo_fintech
+      secretRef: demo-fintech-token
+      connection: { baseUrl: "http://demo-fintech.{{ .Values.sandbox.namespace }}.svc.cluster.local:8080", timeout: 5s }
+      webhook: { secretRef: demo-fintech-webhook, toleranceSeconds: 300 }
+  {{- end }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-migrate-{{ .Release.Revision }}
+  labels: {{- include "satops.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 10
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: migrate, app.kubernetes.io/part-of: satops }
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: satops-api
+      securityContext: { runAsNonRoot: true, runAsUser: 10001 }
+      containers:
+        - name: migrate
+          image: {{ .Values.image.api }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/app/bin/sat_ops", "eval", "SatOps.Release.migrate()"]
+          env: {{- include "satops.apiEnv" . | nindent 12 }}
+          resources: { requests: { cpu: 100m, memory: 256Mi }, limits: { cpu: "1", memory: 512Mi } }
+{{- range $role := list "api" "worker" }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: satops-{{ $role }}
+  labels: {{- include "satops.labels" $ | nindent 4 }}
+    app.kubernetes.io/name: satops-{{ $role }}
+spec:
+  replicas: {{ index $.Values $role "replicas" }}
+  selector:
+    matchLabels: { app.kubernetes.io/name: satops-{{ $role }} }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: satops-{{ $role }}, app.kubernetes.io/part-of: satops }
+    spec:
+      serviceAccountName: satops-{{ $role }}
+      securityContext: { runAsNonRoot: true, runAsUser: 10001, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: app
+          image: {{ $.Values.image.api }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          env:
+            {{- include "satops.apiEnv" $ | nindent 12 }}
+            - { name: SATOPS_ROLE, value: {{ $role }} }
+            - { name: PHX_SERVER, value: "true" }
+          ports: [{ containerPort: 4000, name: http }]
+          securityContext: { allowPrivilegeEscalation: false, capabilities: { drop: [ALL] } }
+          startupProbe: { httpGet: { path: /api/health, port: http }, periodSeconds: 5, failureThreshold: 60 }
+          readinessProbe: { httpGet: { path: /api/ready, port: http }, periodSeconds: 10 }
+          livenessProbe: { httpGet: { path: /api/health, port: http }, periodSeconds: 20, failureThreshold: 3 }
+          resources: {{- toYaml (index $.Values $role "resources") | nindent 12 }}
+          volumeMounts:
+            - { name: bootstrap, mountPath: /etc/satops/bootstrap, readOnly: true }
+      volumes:
+        - name: bootstrap
+          configMap: { name: {{ $.Release.Name }}-bootstrap }
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  labels: {{- include "satops.labels" . | nindent 4 }}
+spec:
+  selector: { app.kubernetes.io/name: satops-api }
+  ports: [{ name: http, port: 4000, targetPort: http }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: satops-worker-metrics
+  labels: {{- include "satops.labels" . | nindent 4 }}
+spec:
+  selector: { app.kubernetes.io/name: satops-worker }
+  ports: [{ name: http, port: 4000, targetPort: http }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: satops-web
+  labels: {{- include "satops.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.web.replicas }}
+  selector:
+    matchLabels: { app.kubernetes.io/name: satops-web }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: satops-web, app.kubernetes.io/part-of: satops }
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: web
+          image: {{ .Values.image.web }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports: [{ containerPort: 8080, name: http }]
+          readinessProbe: { httpGet: { path: /healthz, port: http }, periodSeconds: 10 }
+          livenessProbe: { httpGet: { path: /healthz, port: http }, periodSeconds: 20 }
+          resources: {{- toYaml .Values.web.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: satops-web
+  labels: {{- include "satops.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.web.service.type }}
+  selector: { app.kubernetes.io/name: satops-web }
+  ports: [{ name: http, port: 80, targetPort: http }]

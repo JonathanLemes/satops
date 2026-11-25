@@ -1,0 +1,7 @@
+apiVersion: v2
+name: satops
+description: SatOps sandbox platform for Bitcoin observability, reconciliation and resilience testing (regtest only).
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords: [bitcoin, regtest, reconciliation, observability, sandbox]

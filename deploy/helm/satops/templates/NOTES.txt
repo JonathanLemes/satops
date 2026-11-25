@@ -1,0 +1,9 @@
+SatOps installed in namespace {{ .Release.Namespace }} (regtest sandbox: {{ .Values.sandbox.namespace }}).
+
+1. Port-forward the web UI:
+   kubectl -n {{ .Release.Namespace }} port-forward svc/satops-web 8470:80
+
+2. Create the first administrator (prints a one-time password):
+   kubectl -n {{ .Release.Namespace }} exec deploy/satops-api -- /app/bin/sat_ops rpc 'SatOps.Release.create_admin("you@example.com")'
+
+Multiple pods on a single physical server are not high availability.

@@ -1,0 +1,256 @@
+{{- if .Values.sandbox.enabled }}
+{{- $ns := .Values.sandbox.namespace }}
+{{- if .Values.sandbox.createNamespace }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $ns }}
+  labels:
+    satops.io/sandbox: "true"
+    pod-security.kubernetes.io/enforce: baseline
+{{- end }}
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata: { name: sandbox-quota, namespace: {{ $ns }} }
+spec:
+  hard:
+    limits.cpu: {{ .Values.sandbox.quota.cpu | quote }}
+    limits.memory: {{ .Values.sandbox.quota.memory }}
+    pods: {{ .Values.sandbox.quota.pods | quote }}
+---
+apiVersion: v1
+kind: LimitRange
+metadata: { name: sandbox-defaults, namespace: {{ $ns }} }
+spec:
+  limits:
+    - type: Container
+      default: { cpu: 500m, memory: 512Mi }
+      defaultRequest: { cpu: 50m, memory: 64Mi }
+---
+apiVersion: v1
+kind: Secret
+metadata: { name: sandbox-secrets, namespace: {{ $ns }}, labels: { satops.io/sandbox: "true" } }
+type: Opaque
+stringData:
+  bitcoinRpcPassword: {{ .Values.secrets.bitcoinRpcPassword | quote }}
+  demoFintechDbPassword: {{ .Values.secrets.demoFintechDbPassword | quote }}
+  demoFintechApiToken: {{ .Values.secrets.demoFintechApiToken | quote }}
+  demoFintechWebhookSecret: {{ .Values.secrets.demoFintechWebhookSecret | quote }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: bitcoin-entrypoint, namespace: {{ $ns }} }
+data:
+  start.sh: |
+    #!/bin/sh
+    set -eu
+    ORDINAL="${HOSTNAME##*-}"
+    PEERS=""
+    i=0
+    while [ "$i" -lt "{{ .Values.sandbox.bitcoin.replicas }}" ]; do
+      if [ "$i" != "$ORDINAL" ]; then PEERS="${PEERS}bitcoin-${i}.bitcoin:18444,"; fi
+      i=$((i + 1))
+    done
+    export BITCOIN_PEERS="${PEERS%,}"
+    exec /satops/entrypoint.sh
+  entrypoint.sh: |
+{{ .Files.Get "files/bitcoin-entrypoint.sh" | indent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata: { name: bitcoin, namespace: {{ $ns }}, labels: { app: bitcoin } }
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector: { app: bitcoin }
+  ports:
+    - { name: rpc, port: 18443 }
+    - { name: p2p, port: 18444 }
+    - { name: zmq, port: 28332 }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: { name: bitcoin, namespace: {{ $ns }}, labels: { app: bitcoin, satops.io/sandbox: "true" } }
+spec:
+  serviceName: bitcoin
+  replicas: {{ .Values.sandbox.bitcoin.replicas }}
+  podManagementPolicy: Parallel
+  selector: { matchLabels: { app: bitcoin } }
+  template:
+    metadata: { labels: { app: bitcoin, satops.io/sandbox: "true" } }
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: bitcoind
+          image: {{ .Values.image.bitcoin }}
+          command: ["/bin/sh", "/satops/start.sh"]
+          env:
+            - { name: BITCOIN_RPC_USER, value: satops }
+            - name: BITCOIN_RPC_PASSWORD
+              valueFrom: { secretKeyRef: { name: sandbox-secrets, key: bitcoinRpcPassword } }
+          ports:
+            - { containerPort: 18443, name: rpc }
+            - { containerPort: 18444, name: p2p }
+            - { containerPort: 28332, name: zmq }
+          readinessProbe: { tcpSocket: { port: rpc }, periodSeconds: 10 }
+          livenessProbe: { tcpSocket: { port: rpc }, periodSeconds: 30, failureThreshold: 5 }
+          resources: {{- toYaml .Values.sandbox.bitcoin.resources | nindent 12 }}
+          volumeMounts:
+            - { name: data, mountPath: /home/bitcoin/.bitcoin }
+            - { name: scripts, mountPath: /satops }
+      volumes:
+        - name: scripts
+          configMap: { name: bitcoin-entrypoint, defaultMode: 0555 }
+  volumeClaimTemplates:
+    - metadata: { name: data, labels: { satops.io/sandbox: "true" } }
+      spec: { accessModes: [ReadWriteOnce], resources: { requests: { storage: {{ .Values.sandbox.bitcoin.storage }} } } }
+{{- if .Values.sandbox.demoFintech.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata: { name: demo-fintech-postgres, namespace: {{ $ns }} }
+spec:
+  clusterIP: None
+  selector: { app: demo-fintech-postgres }
+  ports: [{ name: pg, port: 5432 }]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: { name: demo-fintech-postgres, namespace: {{ $ns }}, labels: { app: demo-fintech-postgres, satops.io/sandbox: "true" } }
+spec:
+  serviceName: demo-fintech-postgres
+  replicas: 1
+  selector: { matchLabels: { app: demo-fintech-postgres } }
+  template:
+    metadata: { labels: { app: demo-fintech-postgres, satops.io/sandbox: "true" } }
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: postgres
+          image: {{ .Values.image.postgres }}
+          env:
+            - { name: POSTGRES_USER, value: demo_fintech }
+            - { name: POSTGRES_DB, value: demo_fintech }
+            - { name: PGDATA, value: /var/lib/postgresql/data/pgdata }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: sandbox-secrets, key: demoFintechDbPassword } }
+          readinessProbe: { exec: { command: [pg_isready, -U, demo_fintech] }, periodSeconds: 5 }
+          resources: { requests: { cpu: 50m, memory: 128Mi }, limits: { cpu: 500m, memory: 512Mi } }
+          volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
+  volumeClaimTemplates:
+    - metadata: { name: data, labels: { satops.io/sandbox: "true" } }
+      spec: { accessModes: [ReadWriteOnce], resources: { requests: { storage: 2Gi } } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: demo-fintech, namespace: {{ $ns }}, labels: { app: demo-fintech, satops.io/sandbox: "true" } }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: demo-fintech } }
+  template:
+    metadata: { labels: { app: demo-fintech, satops.io/sandbox: "true" } }
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: demo-fintech
+          image: {{ .Values.image.demoFintech }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: sandbox-secrets, key: demoFintechDbPassword } }
+            - { name: DATABASE_URL, value: "postgres://demo_fintech:$(DB_PASSWORD)@demo-fintech-postgres:5432/demo_fintech" }
+            - { name: BITCOIN_RPC_URL, value: "http://bitcoin-0.bitcoin:18443" }
+            - { name: BITCOIN_RPC_USER, value: satops }
+            - name: BITCOIN_RPC_PASSWORD
+              valueFrom: { secretKeyRef: { name: sandbox-secrets, key: bitcoinRpcPassword } }
+            - name: API_TOKEN
+              valueFrom: { secretKeyRef: { name: sandbox-secrets, key: demoFintechApiToken } }
+            - name: WEBHOOK_SECRET
+              valueFrom: { secretKeyRef: { name: sandbox-secrets, key: demoFintechWebhookSecret } }
+            - { name: WEBHOOK_URL, value: "http://api.{{ .Release.Namespace }}.svc.cluster.local:4000/api/webhooks/default-sandbox/demo-fintech" }
+            - { name: REQUIRED_CONFIRMATIONS, value: {{ .Values.sandbox.demoFintech.requiredConfirmations | quote }} }
+            - { name: SYNTHETIC_CUSTOMERS, value: {{ .Values.sandbox.demoFintech.syntheticCustomers | quote }} }
+            - { name: FAULT_MODES_ALLOWED, value: {{ .Values.sandbox.demoFintech.faultModesAllowed | quote }} }
+          ports: [{ containerPort: 8080, name: http }]
+          readinessProbe: { httpGet: { path: /health, port: http }, periodSeconds: 10 }
+          livenessProbe: { httpGet: { path: /health, port: http }, periodSeconds: 30 }
+          resources: { requests: { cpu: 50m, memory: 96Mi }, limits: { cpu: 500m, memory: 384Mi } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: demo-fintech, namespace: {{ $ns }} }
+spec:
+  selector: { app: demo-fintech }
+  ports: [{ name: http, port: 8080, targetPort: http }]
+{{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: { name: satops-experiment-runner, namespace: {{ $ns }} }
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets"]
+    verbs: ["get", "list", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale", "statefulsets/scale"]
+    verbs: ["get", "patch", "update"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "delete"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies"]
+    verbs: ["get", "list", "create", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: { name: satops-experiment-runner, namespace: {{ $ns }} }
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: satops-experiment-runner }
+subjects:
+  - { kind: ServiceAccount, name: satops-worker, namespace: {{ .Release.Namespace }} }
+{{- if .Values.sandbox.networkPolicies }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: default-deny, namespace: {{ $ns }} }
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: allow-intra-sandbox, namespace: {{ $ns }} }
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from: [{ podSelector: {} }]
+  egress:
+    - to: [{ podSelector: {} }]
+    - to: [{ namespaceSelector: {}, podSelector: { matchLabels: { k8s-app: kube-dns } } }]
+      ports: [{ port: 53, protocol: UDP }, { port: 53, protocol: TCP }]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: allow-from-satops, namespace: {{ $ns }} }
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: {{ .Release.Namespace }} } }
+          podSelector: { matchLabels: { app.kubernetes.io/part-of: satops } }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: allow-webhooks-to-satops, namespace: {{ $ns }} }
+spec:
+  podSelector: { matchLabels: { app: demo-fintech } }
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: {{ .Release.Namespace }} } }
+          podSelector: { matchLabels: { app.kubernetes.io/name: satops-api } }
+      ports: [{ port: 4000, protocol: TCP }]
+{{- end }}
+{{- end }}

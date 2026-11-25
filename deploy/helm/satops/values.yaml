@@ -1,0 +1,70 @@
+image:
+  api: satops-api:local
+  web: satops-web:local
+  demoFintech: satops-demo-fintech:local
+  bitcoin: bitcoin/bitcoin:29.0
+  postgres: postgres:17
+  pullPolicy: IfNotPresent
+
+existingSecret: ""
+secrets:
+  secretKeyBase: ""
+  satopsSecretKey: ""
+  postgresPassword: ""
+  satopsDbPassword: ""
+  demoFintechDbPassword: ""
+  bitcoinRpcPassword: ""
+  demoFintechApiToken: ""
+  demoFintechWebhookSecret: ""
+
+api:
+  replicas: 1
+  resources:
+    requests: { cpu: 200m, memory: 384Mi }
+    limits: { cpu: "1", memory: 1Gi }
+
+worker:
+  replicas: 1
+  resources:
+    requests: { cpu: 200m, memory: 384Mi }
+    limits: { cpu: "1", memory: 1Gi }
+
+web:
+  replicas: 1
+  service:
+    type: ClusterIP
+  resources:
+    requests: { cpu: 20m, memory: 32Mi }
+    limits: { cpu: 200m, memory: 128Mi }
+
+postgresql:
+  enabled: true
+  storage: 10Gi
+  storageClass: ""
+  resources:
+    requests: { cpu: 200m, memory: 512Mi }
+    limits: { cpu: "2", memory: 1536Mi }
+
+cookieSecure: false
+logFormat: json
+
+sandbox:
+  enabled: true
+  namespace: sandbox-default
+  createNamespace: true
+  bitcoin:
+    replicas: 3
+    storage: 2Gi
+    resources:
+      requests: { cpu: 100m, memory: 256Mi }
+      limits: { cpu: "1", memory: 512Mi }
+  demoFintech:
+    enabled: true
+    syntheticCustomers: 3
+    requiredConfirmations: 3
+    faultModesAllowed: true
+  quota:
+    cpu: "4"
+    memory: 6Gi
+    pods: "20"
+  networkPolicies: true

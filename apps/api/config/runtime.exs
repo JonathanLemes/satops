@@ -44,6 +44,10 @@ if config_env() == :prod do
       System.get_env("SATOPS_K8S_SANDBOX_NAMESPACES", "")
       |> String.split(",", trim: true)
 
+  if dir = System.get_env("SATOPS_BOOTSTRAP_DIR") do
+    config :sat_ops, bootstrap_dir: dir
+  end
+
   if role == :api do
     config :sat_ops, Oban, queues: false, plugins: false
   end
