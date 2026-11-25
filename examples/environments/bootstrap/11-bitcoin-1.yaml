@@ -1,0 +1,21 @@
+apiVersion: satops.io/v1alpha1
+kind: BitcoinIntegration
+metadata:
+  name: bitcoin-1
+spec:
+  environmentRef: default-sandbox
+  network: regtest
+  priority: 110
+  rpc:
+    host: bitcoin-1
+    port: 18443
+    secretRef: bitcoin-rpc
+  zmq:
+    enabled: true
+    endpoint: tcp://bitcoin-1:28332
+  monitoring:
+    reconcileInterval: 15s
+    timeout: 5s
+  retry:
+    maxAttempts: 5
+    backoff: exponential

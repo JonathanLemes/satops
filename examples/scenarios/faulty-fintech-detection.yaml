@@ -1,0 +1,85 @@
+apiVersion: satops.io/v1alpha1
+kind: Experiment
+metadata:
+  name: faulty-fintech-detection
+spec:
+  description: Turns on the duplicate_deposit_credit fault in the demo fintech. The scenario passes only if reconciliation reports the duplicate credit.
+  assertions:
+    - kind: duplicate_credit
+      atLeast: 1
+      source: demo-fintech
+      timeout: 30s
+      type: reconciliation.open_discrepancies
+    - account: customer
+      amountSats: 250000
+      timeout: 90s
+      type: ledger.balance_equals
+    - type: ledger.is_balanced
+  guarantee: SatOps detects a financial application that credits a deposit twice
+  steps:
+    - action: bitcoin.ensure_funds
+      id: fund-wallet
+      params:
+        minimumSats: 500000000
+      phase: prepare
+      timeout: 120s
+    - action: integration.create_customer
+      id: create-customer
+      maxAttempts: 3
+      params:
+        name: Scenario customer
+        as: customer
+      phase: prepare
+    - action: integration.request_deposit_address
+      id: deposit-address
+      maxAttempts: 3
+      params:
+        as: deposit_address
+        customerRef: customer
+      phase: prepare
+    - action: integration.set_fault
+      id: enable-fault
+      params:
+        enabled: true
+        mode: duplicate_deposit_credit
+      phase: prepare
+    - action: bitcoin.send_transaction
+      id: send-deposit
+      params:
+        amountSats: 250000
+        as: deposit-001
+        toRef: deposit_address
+      phase: run
+    - action: bitcoin.mine_blocks
+      id: mine-confirmations
+      params:
+        count: 3
+      phase: run
+    - action: satwatch.sync_now
+      id: ingest
+      maxAttempts: 2
+      params: {}
+      phase: run
+      timeout: 90s
+    - action: assert.evaluate
+      id: wait-fintech
+      params:
+        assertion:
+          amountSats: 500000
+          customerRef: customer
+          timeout: 90s
+          type: fintech.balance_equals
+      phase: run
+      timeout: 120s
+    - action: reconciliation.run
+      id: reconcile
+      params: {}
+      phase: verify
+      timeout: 150s
+    - action: integration.set_fault
+      id: disable-fault
+      params:
+        enabled: false
+        mode: duplicate_deposit_credit
+      phase: cleanup
+  title: Faulty fintech detection

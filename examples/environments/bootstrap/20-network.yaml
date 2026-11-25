@@ -1,0 +1,13 @@
+apiVersion: satops.io/v1alpha1
+kind: BitcoinNetwork
+metadata:
+  name: default-sandbox-network
+spec:
+  environmentRef: default-sandbox
+  type: regtest
+  referencePolicy: mostWork
+  nodes:
+    - integrationRef: bitcoin-0
+      priority: 100
+    - integrationRef: bitcoin-1
+      priority: 110

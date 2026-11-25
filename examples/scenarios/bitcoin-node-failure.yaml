@@ -1,0 +1,72 @@
+apiVersion: satops.io/v1alpha1
+kind: Experiment
+metadata:
+  name: bitcoin-node-failure
+spec:
+  description: Stops bitcoind on the primary node through RPC while blocks keep being mined on the secondary node. The container restart policy brings the node back.
+  assertions:
+    - expected: 3
+      timeout: 180s
+      transactionRef: deposit-001
+      type: blockchain.confirmations
+    - timeout: 180s
+      type: blockchain.synced
+    - account: customer
+      amountSats: 800000
+      timeout: 90s
+      type: ledger.balance_equals
+    - type: ledger.is_balanced
+  guarantee: Ingestion recovers after the node returns or fails over to another node
+  requiredCapabilities:
+    - bitcoin.multi_node
+  steps:
+    - action: bitcoin.ensure_funds
+      id: fund-wallet
+      params:
+        minimumSats: 500000000
+      phase: prepare
+      timeout: 120s
+    - action: integration.create_customer
+      id: create-customer
+      maxAttempts: 3
+      params:
+        name: Scenario customer
+        as: customer
+      phase: prepare
+    - action: integration.request_deposit_address
+      id: deposit-address
+      maxAttempts: 3
+      params:
+        as: deposit_address
+        customerRef: customer
+      phase: prepare
+    - action: bitcoin.send_transaction
+      id: send-deposit
+      params:
+        amountSats: 800000
+        as: deposit-001
+        toRef: deposit_address
+      phase: run
+    - action: bitcoin.mine_blocks
+      id: mine-before
+      params:
+        count: 1
+      phase: run
+    - action: wait.duration
+      id: wait-propagation
+      params:
+        seconds: 3
+      phase: run
+    - action: bitcoin.stop_node
+      id: stop-primary
+      params:
+        node: bitcoin-0
+      phase: run
+    - action: bitcoin.mine_blocks
+      id: mine-on-secondary
+      maxAttempts: 1
+      params:
+        count: 3
+        node: bitcoin-1
+      phase: run
+  title: Bitcoin node failure

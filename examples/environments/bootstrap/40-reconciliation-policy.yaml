@@ -1,0 +1,14 @@
+apiVersion: satops.io/v1alpha1
+kind: ReconciliationPolicy
+metadata:
+  name: default-sandbox
+spec:
+  environmentRef: default-sandbox
+  sources:
+    - native-ledger
+    - demo-fintech
+  requiredSources:
+    - native-ledger
+    - demo-fintech
+  settlementDelaySeconds: 600
+  matching: deterministic

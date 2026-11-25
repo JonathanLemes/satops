@@ -80,3 +80,26 @@ defmodule SatOps.ConfigurationTest do
     assert msg =~ "whitelist"
   end
 end
+
+defmodule SatOps.BundledResourcesTest do
+  use SatOps.DataCase
+
+  test "every bundled scenario is valid and uses only whitelisted actions" do
+    files = Path.wildcard(Path.expand("../../../../../examples/scenarios/*.yaml", __DIR__))
+    assert length(files) >= 13
+
+    for file <- files do
+      assert {:ok, %{"kind" => "Experiment"}} = SatOps.Configuration.parse(File.read!(file)), file
+    end
+  end
+
+  test "bootstrap resources satisfy their JSON Schemas" do
+    files = Path.wildcard(Path.expand("../../../../../examples/environments/bootstrap/*.yaml", __DIR__))
+    assert files != []
+
+    for file <- files do
+      {:ok, doc} = SatOps.Configuration.Yaml.parse(File.read!(file))
+      assert :ok = SatOps.Configuration.Schemas.validate(doc["kind"], doc), file
+    end
+  end
+end

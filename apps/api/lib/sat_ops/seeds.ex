@@ -4,7 +4,35 @@ defmodule SatOps.Seeds do
 
   def ensure_platform_defaults(_env) do
     Dashboards.ensure_defaults()
+    load_bootstrap()
     load_scenarios()
+    :ok
+  end
+
+  def bootstrap_dir do
+    case Application.get_env(:sat_ops, :bootstrap_dir) do
+      nil -> Application.app_dir(:sat_ops, "priv/bootstrap")
+      path -> path
+    end
+  end
+
+  def load_bootstrap do
+    dir = bootstrap_dir()
+
+    if File.dir?(dir) do
+      for file <- dir |> Path.join("*.yaml") |> Path.wildcard() |> Enum.sort() do
+        with {:ok, doc} <- SatOps.Configuration.Yaml.parse(File.read!(file)),
+             nil <- Configuration.get(doc["kind"], get_in(doc, ["metadata", "name"])) do
+          case Configuration.apply_document(doc, actor: nil, message: "bootstrap") do
+            {:ok, _} -> :ok
+            {:error, reason} -> Logger.warning("bootstrap resource #{Path.basename(file)} rejected: #{inspect(reason)}")
+          end
+        else
+          _ -> :ok
+        end
+      end
+    end
+
     :ok
   end
 

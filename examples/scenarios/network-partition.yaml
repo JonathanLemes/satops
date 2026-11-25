@@ -1,0 +1,77 @@
+apiVersion: satops.io/v1alpha1
+kind: Experiment
+metadata:
+  name: network-partition
+spec:
+  description: "Partitions the two regtest nodes, mines competing chains on both sides and reconnects them. The heavier chain wins and SatOps must converge to it."
+  assertions:
+    - timeout: 60s
+      type: blockchain.synced
+    - expected: 0
+      type: ledger.duplicate_credits
+    - type: ledger.is_balanced
+  guarantee: State is reconciled after the partition heals
+  requiredCapabilities:
+    - bitcoin.multi_node
+  steps:
+    - action: bitcoin.ensure_funds
+      id: fund-wallet
+      params:
+        minimumSats: 500000000
+      phase: prepare
+      timeout: 120s
+    - action: integration.create_customer
+      id: create-customer
+      maxAttempts: 3
+      params:
+        name: Scenario customer
+        as: customer
+      phase: prepare
+    - action: integration.request_deposit_address
+      id: deposit-address
+      maxAttempts: 3
+      params:
+        as: deposit_address
+        customerRef: customer
+      phase: prepare
+    - action: bitcoin.disconnect_peer
+      id: partition
+      params:
+        node: bitcoin-1
+      phase: run
+    - action: bitcoin.mine_blocks
+      id: mine-side-a
+      params:
+        count: 2
+        node: bitcoin-0
+      phase: run
+    - action: bitcoin.mine_blocks
+      id: mine-side-b
+      params:
+        count: 4
+        node: bitcoin-1
+      phase: run
+    - action: bitcoin.connect_peer
+      id: heal
+      params:
+        node: bitcoin-1
+      phase: run
+      timeout: 60s
+    - action: wait.duration
+      id: wait-convergence
+      params:
+        seconds: 5
+      phase: run
+    - action: satwatch.sync_now
+      id: ingest
+      maxAttempts: 2
+      params: {}
+      phase: run
+      timeout: 90s
+    - action: bitcoin.connect_peer
+      id: heal-cleanup
+      params:
+        node: bitcoin-1
+      phase: cleanup
+      timeout: 60s
+  title: Network partition

@@ -20,6 +20,8 @@ COPY apps/api/config config
 COPY apps/api/lib lib
 COPY apps/api/priv priv
 COPY packages/config-schemas/schemas priv/config_schemas
+COPY examples/scenarios priv/scenarios
+COPY examples/environments/bootstrap priv/bootstrap
 RUN mix compile && mix release
 
 FROM ${RUNTIME_IMAGE} AS runtime

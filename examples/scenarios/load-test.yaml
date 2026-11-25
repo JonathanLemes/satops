@@ -1,0 +1,36 @@
+apiVersion: satops.io/v1alpha1
+kind: Experiment
+metadata:
+  name: load-test
+spec:
+  description: "Generates a burst of regtest transactions and measures how long ingestion takes to catch up. Numbers are recorded in the report, never assumed."
+  assertions:
+    - timeout: 60s
+      type: blockchain.synced
+    - type: ledger.is_balanced
+  guarantee: Operational limits and bottlenecks are measurable
+  steps:
+    - action: bitcoin.ensure_funds
+      id: fund-wallet
+      params:
+        minimumSats: 500000000
+      phase: prepare
+      timeout: 120s
+    - action: load.generate_transactions
+      id: burst
+      params:
+        count: 100
+      phase: run
+      timeout: 300s
+    - action: bitcoin.mine_blocks
+      id: mine
+      params:
+        count: 1
+      phase: run
+    - action: satwatch.sync_now
+      id: ingest
+      maxAttempts: 2
+      params: {}
+      phase: run
+      timeout: 180s
+  title: Load test

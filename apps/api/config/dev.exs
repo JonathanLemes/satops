@@ -17,7 +17,9 @@ config :sat_ops, SatOpsWeb.Endpoint,
 config :sat_ops,
   secret_key: Base.encode64(:binary.copy(<<1>>, 32)),
   dev_routes: true,
-  config_schemas_dir: Path.expand("../../../packages/config-schemas/schemas", __DIR__)
+  config_schemas_dir: Path.expand("../../../packages/config-schemas/schemas", __DIR__),
+  scenarios_dir: Path.expand("../../../examples/scenarios", __DIR__),
+  bootstrap_dir: Path.expand("../../../examples/environments/bootstrap", __DIR__)
 
 config :logger, :default_formatter, format: "[$level] $metadata$message\n"
 config :phoenix, :stacktrace_depth, 20

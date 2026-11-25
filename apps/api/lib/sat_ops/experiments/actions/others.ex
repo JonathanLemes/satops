@@ -319,7 +319,7 @@ defmodule SatOps.Experiments.Actions.Ledger.PostWithCrash do
          {:ok, to} <- Context.resolve(ctx, p["toRef"]),
          {:ok, draft} <-
            Rules.build("internal_transfer", %{
-             operation_id: "crash-test:#{ctx.run.id}",
+             operation_id: "crash-test:#{ctx.run.id}:#{p["crash"]}",
              from_ref: from,
              to_ref: to,
              amount_sats: p["amountSats"]

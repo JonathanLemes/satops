@@ -1,7 +1,8 @@
 defmodule SatOps.Factory do
   alias SatOps.Repo
 
-  def unique(prefix), do: "#{prefix}-#{System.unique_integer([:positive])}"
+  def unique(prefix),
+    do: "#{prefix}-#{System.unique_integer([:positive])}-#{Base.encode16(:crypto.strong_rand_bytes(3), case: :lower)}"
 
   def environment(attrs \\ %{}) do
     {:ok, env} =

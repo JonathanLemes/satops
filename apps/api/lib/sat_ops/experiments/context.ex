@@ -65,5 +65,13 @@ defmodule SatOps.Experiments.Context do
   end
 
   def resolve(ctx, %{"ref" => key}), do: ref(ctx, key)
+
+  def resolve(ctx, key) when is_binary(key) do
+    case Map.fetch(ctx.refs, key) do
+      {:ok, v} -> {:ok, v}
+      :error -> {:ok, key}
+    end
+  end
+
   def resolve(_ctx, value), do: {:ok, value}
 end

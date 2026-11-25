@@ -1,0 +1,95 @@
+apiVersion: satops.io/v1alpha1
+kind: Experiment
+metadata:
+  name: worker-crash
+spec:
+  description: "Kills the process that posts a journal before and after the database commit, then retries the same operation."
+  assertions:
+    - expected: 0
+      field: journalsAfterCrash
+      step: crash-before-commit
+      type: step.result_equals
+    - expected: 1
+      field: journalsAfterRetry
+      step: crash-before-commit
+      type: step.result_equals
+    - expected: true
+      field: committedBeforeCrash
+      step: crash-after-commit
+      type: step.result_equals
+    - expected: replayed
+      field: retryStatus
+      step: crash-after-commit
+      type: step.result_equals
+    - expected: 1
+      field: journalsAfterRetry
+      step: crash-after-commit
+      type: step.result_equals
+    - type: ledger.is_balanced
+  guarantee: Interrupted work leaves no partial effect and retries do not duplicate
+  steps:
+    - action: bitcoin.ensure_funds
+      id: fund-wallet
+      params:
+        minimumSats: 500000000
+      phase: prepare
+      timeout: 120s
+    - action: integration.create_customer
+      id: create-customer
+      maxAttempts: 3
+      params:
+        name: Scenario customer
+        as: customer
+      phase: prepare
+    - action: integration.request_deposit_address
+      id: deposit-address
+      maxAttempts: 3
+      params:
+        as: deposit_address
+        customerRef: customer
+      phase: prepare
+    - action: bitcoin.send_transaction
+      id: send-deposit
+      params:
+        amountSats: 1500000
+        as: deposit-001
+        toRef: deposit_address
+      phase: run
+    - action: bitcoin.mine_blocks
+      id: mine-confirmations
+      params:
+        count: 3
+      phase: run
+    - action: satwatch.sync_now
+      id: ingest
+      maxAttempts: 2
+      params: {}
+      phase: run
+      timeout: 90s
+    - action: assert.evaluate
+      id: wait-credit
+      params:
+        assertion:
+          account: customer
+          amountSats: 1500000
+          timeout: 90s
+          type: ledger.balance_equals
+      phase: run
+      timeout: 120s
+    - action: ledger.post_with_crash
+      id: crash-before-commit
+      params:
+        amountSats: 1000
+        crash: before_commit
+        fromRef: customer
+        toRef: crash-test-receiver
+      phase: run
+    - action: ledger.post_with_crash
+      id: crash-after-commit
+      params:
+        amountSats: 1000
+        crash: after_commit
+        fromRef: customer
+        toRef: crash-test-receiver
+      phase: run
+  title: Worker crash

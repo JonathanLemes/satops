@@ -1,0 +1,14 @@
+apiVersion: satops.io/v1alpha1
+kind: FinancialIntegration
+metadata:
+  name: demo-fintech
+spec:
+  environmentRef: default-sandbox
+  type: demo_fintech
+  secretRef: demo-fintech-token
+  connection:
+    baseUrl: http://demo-fintech:8080
+    timeout: 5s
+  webhook:
+    secretRef: demo-fintech-webhook
+    toleranceSeconds: 300

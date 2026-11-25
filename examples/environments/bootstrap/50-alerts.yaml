@@ -1,0 +1,20 @@
+apiVersion: satops.io/v1alpha1
+kind: AlertPolicy
+metadata:
+  name: default-alerts
+spec:
+  environmentRef: default-sandbox
+  enabled: true
+  severity: warning
+  cooldown: 10m
+  events:
+    - node.disconnected
+    - integration.unavailable
+    - chain.reorganized
+    - reconciliation.discrepancy_detected
+    - reconciliation.incomplete
+    - experiment.finished
+    - ledger.invariant_violated
+    - node.diverged
+  destinations:
+    - type: internal

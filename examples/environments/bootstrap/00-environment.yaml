@@ -1,0 +1,37 @@
+apiVersion: satops.io/v1alpha1
+kind: Environment
+metadata:
+  name: default-sandbox
+  description: Default regtest sandbox created on first boot.
+spec:
+  displayName: Default sandbox
+  kind: persistent
+  network:
+    type: regtest
+    nodes: 2
+  modules:
+    satwatch: true
+    clearledger: true
+    satlab: true
+  ledger:
+    asset: BTC
+    confirmationPolicy:
+      requiredConfirmations: 3
+  reconciliation:
+    enabled: true
+    interval: 5m
+    autoCorrect: false
+  demoFintech:
+    enabled: true
+    syntheticCustomers: 3
+  experiments:
+    enabled: true
+    maxConcurrent: 2
+    cleanupPolicy: onCompletion
+  resources:
+    cpuLimit: "4"
+    memoryLimit: 6Gi
+  safety:
+    allowMainnet: false
+    allowPublicPeers: false
+    requireIsolatedNamespace: true

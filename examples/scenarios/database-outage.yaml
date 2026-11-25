@@ -1,0 +1,40 @@
+apiVersion: satops.io/v1alpha1
+kind: Experiment
+metadata:
+  name: database-outage
+spec:
+  description: "Scales the demo fintech database to zero inside the sandbox namespace, verifies that reconciliation reports an incomplete run, and restores it. Requires the Kubernetes runtime; it is refused on Docker Compose instead of being simulated."
+  assertions:
+    - expected: incomplete
+      type: reconciliation.run_status
+  guarantee: Processing resumes without inconsistencies after the application database returns
+  requiredCapabilities:
+    - kubernetes.scale_workload
+  steps:
+    - action: kubernetes.scale_workload
+      id: stop-database
+      params:
+        kind: StatefulSet
+        name: demo-fintech-postgres
+        namespace: sandbox-default
+        replicas: 0
+      phase: run
+    - action: wait.duration
+      id: wait
+      params:
+        seconds: 10
+      phase: run
+    - action: reconciliation.run
+      id: reconcile
+      params: {}
+      phase: verify
+      timeout: 150s
+    - action: kubernetes.scale_workload
+      id: restore-database
+      params:
+        kind: StatefulSet
+        name: demo-fintech-postgres
+        namespace: sandbox-default
+        replicas: 1
+      phase: cleanup
+  title: Database outage

@@ -101,7 +101,7 @@ services:
       BITCOIN_RPC_USER: ${BITCOIN_RPC_USER:?}
       BITCOIN_RPC_PASSWORD: ${BITCOIN_RPC_PASSWORD:?}
       API_TOKEN: ${DEMO_FINTECH_API_TOKEN:?}
-      WEBHOOK_URL: http://api:4000/api/webhooks/demo-fintech
+      WEBHOOK_URL: http://api:4000/api/webhooks/default-sandbox/demo-fintech
       WEBHOOK_SECRET: ${DEMO_FINTECH_WEBHOOK_SECRET:?}
       REQUIRED_CONFIRMATIONS: "3"
       FAULT_MODES_ALLOWED: "true"
