@@ -6,7 +6,7 @@ defmodule SatOps.Integrations.Http do
       max_attempts = Keyword.get(opts, :max_attempts, 3)
       timeout = Keyword.get(opts, :timeout, 5_000)
 
-      Req.request(
+      [
         method: method,
         url: url,
         headers: Keyword.get(opts, :headers, []),
@@ -20,7 +20,9 @@ defmodule SatOps.Integrations.Http do
         max_retries: max_attempts - 1,
         retry_delay: fn n -> SatOps.Backoff.delay(n + 1, base_ms: 200, max_ms: 5_000) end,
         retry_log_level: false
-      )
+      ]
+      |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+      |> Req.request()
       |> case do
         {:ok, %{status: status} = resp} when status in 200..299 -> {:ok, resp}
         {:ok, %{status: status}} -> {:error, {:http_status, status}}

@@ -34,6 +34,11 @@ defmodule SatOps.Blockchain.PureTest do
       assert ForkFinder.select_reference(obs).name == "heavy"
     end
 
+    test "a fresh regtest chain still in initial block download is used when nothing better exists" do
+      obs = [%{reachable: true, chain: "regtest", chainwork: Decimal.new(2), initial_block_download: true, priority: 100, name: "fresh"}]
+      assert ForkFinder.select_reference(obs).name == "fresh"
+    end
+
     test "divergence is reported when reachable nodes disagree" do
       assert ForkFinder.divergent?([%{reachable: true, best_hash: "a"}, %{reachable: true, best_hash: "b"}])
       refute ForkFinder.divergent?([%{reachable: true, best_hash: "a"}, %{reachable: false, best_hash: "b"}])
