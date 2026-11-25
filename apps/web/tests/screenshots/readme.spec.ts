@@ -29,9 +29,9 @@ function macWindow(file: string, url: string, theme: "light" | "dark", left: num
   return `<div class="win ${theme}" style="left:${left}px;top:${top}px"><div class="bar"><div class="dots"><i class="r"></i><i class="y"></i><i class="g"></i></div><div class="url"><svg width="12" height="14" viewBox="0 0 12 14"><rect x="1" y="6" width="10" height="8" rx="2" fill="currentColor"/><path d="M3.5 6V4a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>${url}</div></div><img src="${src}"></div>`;
 }
 
-const SHOWCASE_CSS = `*{box-sizing:border-box;margin:0}html,body{background:#000}
+const SHOWCASE_CSS = `*{box-sizing:border-box;margin:0}html,body{background:transparent}
 body{width:2000px;height:1180px;position:relative;font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;overflow:hidden}
-.win{position:absolute;border-radius:14px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.12)}
+.win{position:absolute;border-radius:14px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35),0 0 0 1px rgba(0,0,0,.18)}
 .bar{height:52px;display:flex;align-items:center;padding:0 20px;position:relative}
 .dots{display:flex;gap:9px}.dots i{width:14px;height:14px;border-radius:50%;display:block}
 .r{background:#ff5f57}.y{background:#febc2e}.g{background:#28c840}
@@ -46,7 +46,7 @@ async function showcase(browser: Browser) {
   await page.setContent(
     `<!doctype html><html><head><style>${SHOWCASE_CSS}</style></head><body>${macWindow("engineering-overview-dark", "satops.local/engineering", "dark", 716, 60)}${macWindow("customer-overview", "satops.local", "light", 60, 300)}</body></html>`,
   );
-  await page.screenshot({ path: `${OUT}/showcase.png` });
+  await page.screenshot({ path: `${OUT}/showcase.png`, omitBackground: true });
   await context.close();
 }
 
