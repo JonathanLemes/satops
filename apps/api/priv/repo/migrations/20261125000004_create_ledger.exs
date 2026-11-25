@@ -199,13 +199,11 @@ defmodule SatOps.Repo.Migrations.CreateLedger do
     """
 
     execute """
-    CREATE FUNCTION ledger_journal_check_balanced() RETURNS trigger LANGUAGE plpgsql AS $$
+    CREATE FUNCTION ledger_check_journal(jid uuid) RETURNS void LANGUAGE plpgsql AS $$
     DECLARE
-      jid uuid;
       bad record;
       n integer;
     BEGIN
-      jid := CASE WHEN TG_TABLE_NAME = 'ledger_journals' THEN NEW.id ELSE NEW.journal_id END;
       SELECT count(*) INTO n FROM ledger_postings WHERE journal_id = jid;
       IF n < 2 THEN
         RAISE EXCEPTION 'journal % must have at least two postings', jid USING ERRCODE = 'check_violation';
@@ -223,18 +221,33 @@ defmodule SatOps.Repo.Migrations.CreateLedger do
         RAISE EXCEPTION 'journal % is unbalanced for asset %: debits % credits %', jid, bad.asset, bad.debits, bad.credits
           USING ERRCODE = 'check_violation';
       END IF;
+    END $$;
+    """
+
+    execute """
+    CREATE FUNCTION ledger_postings_check_balanced() RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN
+      PERFORM ledger_check_journal(NEW.journal_id);
+      RETURN NULL;
+    END $$;
+    """
+
+    execute """
+    CREATE FUNCTION ledger_journals_check_balanced() RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN
+      PERFORM ledger_check_journal(NEW.id);
       RETURN NULL;
     END $$;
     """
 
     execute """
     CREATE CONSTRAINT TRIGGER ledger_postings_balanced AFTER INSERT ON ledger_postings
-    DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION ledger_journal_check_balanced()
+    DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION ledger_postings_check_balanced()
     """
 
     execute """
     CREATE CONSTRAINT TRIGGER ledger_journals_have_postings AFTER INSERT ON ledger_journals
-    DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION ledger_journal_check_balanced()
+    DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION ledger_journals_check_balanced()
     """
 
     execute """
@@ -272,7 +285,9 @@ defmodule SatOps.Repo.Migrations.CreateLedger do
     drop table(:ledger_journals)
     drop table(:ledger_accounts)
     execute "DROP FUNCTION ledger_balances_guard()"
-    execute "DROP FUNCTION ledger_journal_check_balanced()"
+    execute "DROP FUNCTION ledger_journals_check_balanced()"
+    execute "DROP FUNCTION ledger_postings_check_balanced()"
+    execute "DROP FUNCTION ledger_check_journal(uuid)"
     execute "DROP FUNCTION ledger_posting_apply()"
   end
 end

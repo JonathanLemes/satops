@@ -21,7 +21,7 @@ defmodule SatOps.Infrastructure.Bitcoin.RPC do
         connect_options: [timeout: min(rpc.timeout, 3_000)],
         retry: false,
         redirect: false,
-        decode_json: [floats: :decimals]
+        decoders: [json: &Jason.decode(&1, floats: :decimals)]
       )
 
     duration = System.monotonic_time() - started

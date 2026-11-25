@@ -207,7 +207,7 @@ defmodule SatOps.Blockchain.ChainSync do
         height: height,
         prev_hash: block["previousblockhash"],
         chainwork: chainwork(block["chainwork"]),
-        block_time: DateTime.from_unix!(block["time"]),
+        block_time: DateTime.from_unix!(block["time"] * 1_000_000, :microsecond),
         tx_count: length(block["tx"]),
         in_best_chain: true,
         connected_at: now

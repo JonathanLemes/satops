@@ -14,6 +14,10 @@ defmodule SatOps.Configuration.Yaml do
       line = anchor_line(text) ->
         {:error, [%{message: "YAML anchors, aliases and merge keys are not supported", line: line, column: nil}]}
 
+      dup = duplicate_key(text) ->
+        {key, line} = dup
+        {:error, [%{message: "duplicate key \"#{key}\"", line: line, column: nil}]}
+
       true ->
         do_parse(text)
     end
@@ -27,7 +31,7 @@ defmodule SatOps.Configuration.Yaml do
         {:error, [%{message: "document is empty", line: 1, column: 1}]}
 
       [doc] ->
-        root = elem(doc, 3)
+        root = elem(doc, 1)
 
         try do
           {value, _count} = convert(root, 0, 0)
@@ -63,6 +67,57 @@ defmodule SatOps.Configuration.Yaml do
     |> String.replace(~r/"(\\.|[^"\\])*"/, "\"\"")
     |> String.replace(~r/'[^']*'/, "''")
     |> String.replace(~r/\s#.*$/, "")
+  end
+
+  def duplicate_key(text) do
+    text
+    |> String.split("\n")
+    |> Enum.with_index(1)
+    |> Enum.reduce_while({[], nil}, fn {raw, n}, {stack, block} ->
+      line = raw
+      indent = String.length(raw) - String.length(String.trim_leading(raw))
+      trimmed = String.trim(line)
+
+      cond do
+        block && (trimmed == "" or indent > block) ->
+          {:cont, {stack, block}}
+
+        trimmed == "" or String.starts_with?(trimmed, "#") or trimmed == "---" ->
+          {:cont, {stack, nil}}
+
+        true ->
+          {item?, rest, key_indent} =
+            case Regex.run(~r/^(\s*)-\s+(.*)$/, raw) do
+              [_, sp, rest] -> {true, rest, String.length(sp) + 2}
+              nil -> {false, String.trim_leading(raw), indent}
+            end
+
+          case Regex.run(~r/^("(?:[^"\\]|\\.)*"|'[^']*'|[^\s#:\-\[\{][^:#]*?|-[^\s:#][^:#]*?)\s*:(\s|$)(.*)$/, rest) do
+            [_, key, _, value] ->
+              key = key |> String.trim() |> String.trim("\"") |> String.trim("'")
+              stack = Enum.drop_while(stack, fn {i, _} -> i > key_indent or (item? and i >= key_indent) end)
+
+              {stack, dup} =
+                case stack do
+                  [{^key_indent, keys} | tail] when not item? ->
+                    {[{key_indent, MapSet.put(keys, key)} | tail], MapSet.member?(keys, key)}
+
+                  _ ->
+                    {[{key_indent, MapSet.new([key])} | stack], false}
+                end
+
+              block_next = if Regex.match?(~r/^[|>][0-9+-]*\s*(#.*)?$/, String.trim(value)), do: key_indent, else: nil
+              if dup, do: {:halt, {key, n}}, else: {:cont, {stack, block_next}}
+
+            nil ->
+              {:cont, {stack, nil}}
+          end
+      end
+    end)
+    |> case do
+      {key, n} when is_binary(key) -> {key, n}
+      _ -> nil
+    end
   end
 
   defp comment_only?(line), do: String.trim_leading(line) |> String.starts_with?("#")
@@ -140,7 +195,12 @@ defmodule SatOps.Configuration.Yaml do
 
   defp key(k) do
     k = to_string(k)
-    if Regex.match?(~r/^[A-Za-z_][A-Za-z0-9_.\/-]*$/, k), do: k, else: Jason.encode!(k)
+
+    plain =
+      Regex.match?(~r/^[A-Za-z_][A-Za-z0-9_.\/-]*$/, k) and
+        not Regex.match?(~r/^(true|false|null|yes|no|on|off|y|n|~)$/i, k)
+
+    if plain, do: k, else: Jason.encode!(k)
   end
 
   defp scalar(nil), do: "null"

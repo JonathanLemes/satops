@@ -60,7 +60,7 @@ defmodule SatOpsWeb.GraphQL.Authorize do
       {:error, code} ->
         Absinthe.Resolution.put_result(
           res,
-          {:error, message: to_string(code), extensions: %{code: String.upcase(to_string(code))}}
+          {:error, %{message: to_string(code), extensions: %{code: String.upcase(to_string(code))}}}
         )
     end
   end

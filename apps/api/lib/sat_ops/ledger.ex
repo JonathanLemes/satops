@@ -126,9 +126,9 @@ defmodule SatOps.Ledger do
         account = Map.fetch!(accounts, {p.account_code, p.asset})
 
         %{
-          journal_id: Ecto.UUID.dump!(journal.id),
-          environment_id: Ecto.UUID.dump!(environment_id),
-          account_id: Ecto.UUID.dump!(account.id),
+          journal_id: journal.id,
+          environment_id: environment_id,
+          account_id: account.id,
           asset: p.asset,
           direction: p.direction,
           amount_sats: p.amount_sats,
@@ -138,6 +138,8 @@ defmodule SatOps.Ledger do
       |> Enum.sort_by(& &1.account_id)
 
     Repo.insert_all(Posting, rows)
+    Repo.query!("SET CONSTRAINTS ledger_postings_balanced, ledger_journals_have_postings IMMEDIATE")
+    Repo.query!("SET CONSTRAINTS ledger_postings_balanced, ledger_journals_have_postings DEFERRED")
 
     Repo.query!("UPDATE ledger_idempotency SET journal_id = $1 WHERE id = $2", [
       Ecto.UUID.dump!(journal.id),

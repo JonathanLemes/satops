@@ -43,6 +43,6 @@ defmodule SatOpsWeb.GraphQL.RequireUser do
   def call(%{context: %{current_user: %{}}} = res, _), do: res
 
   def call(res, _) do
-    Absinthe.Resolution.put_result(res, {:error, message: "unauthenticated", extensions: %{code: "UNAUTHENTICATED"}})
+    Absinthe.Resolution.put_result(res, {:error, %{message: "unauthenticated", extensions: %{code: "UNAUTHENTICATED"}}})
   end
 end

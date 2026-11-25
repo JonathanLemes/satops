@@ -6,19 +6,42 @@ defmodule SatOps.Ledger.Deposits do
   @inactive [nil, "none", "cancelled", "reversed"]
   @gone ~w(conflicted replaced unknown)
 
-  def decide(state, tx_status, confirmations, required) do
+  def decide(state, tx_status, confirmations, required, block_changed \\ false) do
     confirmed_enough = tx_status == "confirmed" and confirmations >= required
 
     cond do
-      state in @inactive and confirmed_enough -> [:detect, :confirm]
-      state in @inactive and tx_status in ["pending", "confirmed", "unconfirmed"] -> [:detect]
-      state in @inactive -> []
-      state == "detected" and confirmed_enough -> [:confirm]
-      state == "detected" and tx_status in @gone -> [:cancel]
-      state == "detected" -> []
-      state == "credited" and tx_status == "confirmed" -> []
-      state == "credited" -> [:reverse]
-      true -> []
+      state == "credited" and tx_status == "confirmed" and block_changed and confirmed_enough ->
+        [:reverse, :detect, :confirm]
+
+      state == "credited" and tx_status == "confirmed" and block_changed ->
+        [:reverse, :detect]
+
+      state in @inactive and confirmed_enough ->
+        [:detect, :confirm]
+
+      state in @inactive and tx_status in ["pending", "confirmed", "unconfirmed"] ->
+        [:detect]
+
+      state in @inactive ->
+        []
+
+      state == "detected" and confirmed_enough ->
+        [:confirm]
+
+      state == "detected" and tx_status in @gone ->
+        [:cancel]
+
+      state == "detected" ->
+        []
+
+      state == "credited" and tx_status == "confirmed" ->
+        []
+
+      state == "credited" ->
+        [:reverse]
+
+      true ->
+        []
     end
   end
 
@@ -40,7 +63,8 @@ defmodule SatOps.Ledger.Deposits do
         vout: vout
       })
 
-    actions = decide(op.state, status, confirmations, env.required_confirmations)
+    block_changed = op.state == "credited" and tx != nil and op.block_hash != nil and tx.block_hash != op.block_hash
+    actions = decide(op.state, status, confirmations, env.required_confirmations, block_changed)
 
     Enum.reduce_while(actions, {:ok, op}, fn action, {:ok, op} ->
       case apply_action(env, op, action, %{tx: tx, confirmations: confirmations}, ctx) do

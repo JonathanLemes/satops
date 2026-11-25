@@ -19,7 +19,7 @@ defmodule SatOps.Blockchain.ForkFinder do
 
   def select_reference(observations) do
     observations
-    |> Enum.filter(&(&1.reachable and &1.chain == "regtest" and not (&1.initial_block_download || false)))
+    |> Enum.filter(&(&1.reachable and &1.chain == "regtest" and not (Map.get(&1, :initial_block_download) || false)))
     |> Enum.sort_by(fn o -> {Decimal.to_integer(o.chainwork || Decimal.new(0)), -(o.priority || 100)} end, :desc)
     |> List.first()
   end
