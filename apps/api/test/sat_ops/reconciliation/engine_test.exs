@@ -106,6 +106,21 @@ defmodule SatOps.Reconciliation.EngineTest do
     assert Enum.all?(ok.items, &(&1.state == "matched"))
   end
 
+  test "pending withdrawals stay in the reported balance as reserved funds" do
+    w = %{
+      "source_record_id" => "w1",
+      "kind" => "withdrawal",
+      "account_ref" => "c1",
+      "amount_sats" => 40_000,
+      "status" => "pending",
+      "occurred_at" => "2026-11-25T11:59:00Z"
+    }
+
+    balances = [%{"account_ref" => "c1", "available_sats" => 60_000, "reserved_sats" => 40_000}]
+    result = Engine.run([fact()], [source([rec(), w], balances: balances)], @policy)
+    refute {"discrepancy", "balance_mismatch"} in kinds(result)
+  end
+
   test "completed withdrawals must exist on chain" do
     w = %{
       "source_record_id" => "w1",

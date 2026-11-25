@@ -224,7 +224,7 @@ defmodule SatOps.Reconciliation.Engine do
 
     outflows =
       source.records
-      |> Enum.filter(&(&1["kind"] == "withdrawal" and &1["status"] in (@credited ++ @pending)))
+      |> Enum.filter(&(&1["kind"] == "withdrawal" and &1["status"] in @credited))
       |> Enum.group_by(& &1["account_ref"], &((&1["amount_sats"] || 0) + (&1["fee_sats"] || 0)))
       |> Map.new(fn {ref, a} -> {ref, Enum.sum(a)} end)
 

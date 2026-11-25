@@ -213,6 +213,7 @@ defmodule SatOps.Experiments.Assertions do
     discrepancies =
       Reconciliation.list_discrepancies(ctx.env.id, states: ["open", "investigating"], kind: a["kind"], limit: 500)
       |> Enum.filter(&(is_nil(a["source"]) or &1.evidence["source"] == a["source"]))
+      |> filter_account(a, ctx)
 
     actual = length(discrepancies)
 
@@ -231,6 +232,13 @@ defmodule SatOps.Experiments.Assertions do
         )
     end
   end
+
+  defp filter_account(discrepancies, %{"account" => key}, ctx) when is_binary(key) do
+    {:ok, ref} = resolve(ctx, key)
+    Enum.filter(discrepancies, &String.contains?(&1.match_key <> Jason.encode!(&1.evidence), ref))
+  end
+
+  defp filter_account(discrepancies, _a, _ctx), do: discrepancies
 
   defp resolve(ctx, key) do
     case Context.ref(ctx, key) do

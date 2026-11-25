@@ -12,7 +12,8 @@ spec:
     - expected: 0
       type: ledger.duplicate_credits
     - type: ledger.is_balanced
-    - expected: 0
+    - account: customer
+      expected: 0
       source: native-ledger
       type: reconciliation.open_discrepancies
   guarantee: One deposit produces exactly the expected net credit
