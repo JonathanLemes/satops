@@ -196,7 +196,7 @@ export default function NodesPage() {
               {n.latest?.error ? <p className="px-5 pb-3 text-xs text-danger">{n.latest.error}</p> : null}
               <div className="h-40 px-3">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={history} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                  <LineChart data={history} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                     <CartesianGrid stroke="var(--border)" vertical={false} />
                     <XAxis
                       dataKey="time"
@@ -209,6 +209,7 @@ export default function NodesPage() {
                       tickLine={false}
                       axisLine={false}
                       unit="ms"
+                      width={48}
                     />
                     <Tooltip contentStyle={tooltipStyle} />
                     <Line

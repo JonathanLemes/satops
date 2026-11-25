@@ -2,6 +2,10 @@
 
 > An open-source, self-hosted platform for Bitcoin observability, financial reconciliation, and resilience testing.
 
+<p align="center">
+  <img src="docs/screenshots/customer-overview.png" alt="SatOps financial overview with balances, transaction volume, reconciliation rate and node health">
+</p>
+
 SatOps answers three questions about applications that handle Bitcoin:
 
 - **Observe**: what happened on the chain and in my infrastructure?
@@ -18,6 +22,45 @@ phrases or private keys, and never moves real money.
 | **ClearLedger** | A double-entry reference ledger in integer satoshis with invariants enforced by PostgreSQL, plus a deterministic reconciliation engine that compares the chain, the reference ledger and external applications. |
 | **SatLab** | A durable scenario runner that reorganizes the chain, stops nodes, replays events or turns on fault modes in a demo fintech, then evaluates typed assertions and produces reproducible reports. |
 | **Platform core** | Declarative configuration (Form and YAML over the same JSON Schemas), environments, integrations, identity and roles, audit trail, alerts, durable events and configurable dashboards. |
+
+## Screenshots
+
+All screenshots come from a live regtest sandbox with synthetic data and are regenerated with
+`make screenshots`.
+
+| Engineering overview | Engineering overview (dark) |
+|---|---|
+| ![Engineering overview](docs/screenshots/engineering-overview.png) | ![Engineering overview in dark mode](docs/screenshots/engineering-overview-dark.png) |
+
+**SatWatch**
+
+| Bitcoin nodes | Blockchain reorganizations |
+|---|---|
+| ![Bitcoin nodes with topology, latency and availability](docs/screenshots/nodes.png) | ![Reorganizations with depth and common ancestor](docs/screenshots/blockchain-reorganizations.png) |
+| **Transactions** | **Transaction detail** |
+| ![Transactions list](docs/screenshots/transactions.png) | ![Transaction outputs, state history and financial operations](docs/screenshots/transaction-detail.png) |
+| **Wallets** | **Integrations** |
+| ![Watch-only wallets and consolidated holdings](docs/screenshots/wallets.png) | ![Integrations with health and connection tests](docs/screenshots/integrations.png) |
+
+**ClearLedger**
+
+| Discrepancies | Discrepancy detail |
+|---|---|
+| ![Open discrepancies](docs/screenshots/discrepancies.png) | ![Duplicate credit with evidence and suggested correction](docs/screenshots/discrepancy-detail.png) |
+| **Reconciliation run** | **Financial timeline** |
+| ![Reconciliation run with sources, watermarks and results](docs/screenshots/reconciliation-run.png) | ![Deposit lifecycle across a reorganization](docs/screenshots/financial-timeline.png) |
+| **Reference ledger** | **Sign in** |
+| ![Journals of the double-entry ledger](docs/screenshots/ledger-journals.png) | ![Sign-in page](docs/screenshots/login.png) |
+
+**SatLab and declarative configuration**
+
+| Experiments | Experiment run |
+|---|---|
+| ![Bundled resilience scenarios](docs/screenshots/experiments.png) | ![Blockchain reorganization scenario that passed](docs/screenshots/experiment-run.png) |
+| **Configuration as a form** | **The same resource as YAML** |
+| ![Bitcoin integration edited as a form generated from JSON Schema](docs/screenshots/configuration-form.png) | ![Bitcoin integration in the YAML editor](docs/screenshots/configuration-yaml.png) |
+| **Plan before apply** | |
+| ![Plan with impact and side by side diff](docs/screenshots/configuration-plan.png) | |
 
 ## Architecture at a glance
 

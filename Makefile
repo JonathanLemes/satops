@@ -83,3 +83,6 @@ admin: ## Create the first administrator: make admin EMAIL=you@example.com
 
 reset-sandbox: ## Destroy sandbox volumes after explicit confirmation
 	@deploy/scripts/reset-sandbox.sh
+
+screenshots: ## Regenerate README screenshots against a running stack (SATOPS_E2E_EMAIL, SATOPS_E2E_PASSWORD)
+	pnpm --filter @satops/web exec playwright test --config playwright.screenshots.config.ts

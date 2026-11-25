@@ -279,7 +279,7 @@ export function ReconciliationHistoryWidget({ title, refreshMs }: WidgetProps) {
     <Frame title={title}>
       <div className="h-full min-h-[140px]">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={points} margin={{ top: 8, right: 4, left: -24, bottom: 0 }}>
+          <AreaChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid stroke="var(--border)" vertical={false} />
             <XAxis
               dataKey="time"
@@ -292,6 +292,7 @@ export function ReconciliationHistoryWidget({ title, refreshMs }: WidgetProps) {
               tick={{ fontSize: 11, fill: "var(--text-muted)" }}
               tickLine={false}
               axisLine={false}
+              width={48}
             />
             <Tooltip contentStyle={tooltipStyle} />
             <Area type="monotone" dataKey="rate" stroke="var(--chart-4)" fill="var(--chart-4)" fillOpacity={0.15} />
@@ -408,7 +409,7 @@ export function LatencyWidget({ title, refreshMs }: WidgetProps) {
     >
       <div className="h-full min-h-[120px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={points} margin={{ top: 8, right: 4, left: -24, bottom: 0 }}>
+          <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid stroke="var(--border)" vertical={false} />
             <XAxis
               dataKey="time"
@@ -416,7 +417,13 @@ export function LatencyWidget({ title, refreshMs }: WidgetProps) {
               tickLine={false}
               axisLine={false}
             />
-            <YAxis tick={{ fontSize: 11, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} unit="ms" />
+            <YAxis
+              tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+              tickLine={false}
+              axisLine={false}
+              unit="ms"
+              width={48}
+            />
             <Tooltip contentStyle={tooltipStyle} />
             {(data?.nodes ?? []).map((n, i) => (
               <Line
