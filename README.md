@@ -1,10 +1,14 @@
-# SatOps
+<div align="center">
 
-> An open-source, self-hosted platform for Bitcoin observability, financial reconciliation, and resilience testing.
+<h1><img src="docs/logo.svg" alt="SatOps logo" width="44" align="top">&nbsp;SatOps</h1>
 
-<p align="center">
-  <img src="docs/screenshots/customer-overview.png" alt="SatOps financial overview with balances, transaction volume, reconciliation rate and node health">
-</p>
+**Bitcoin observability, financial reconciliation and resilience testing.** An open-source, self-hosted platform that runs against regtest with synthetic data.
+
+`Elixir / Phoenix` · `PostgreSQL` · `React` · `Bitcoin Core regtest` · `Apache 2.0`
+
+</div>
+
+<p align="center"><img src="docs/screenshots/showcase.png" alt="SatOps financial overview in light mode in front of the engineering overview in dark mode, framed as macOS windows" width="900"></p>
 
 SatOps answers three questions about applications that handle Bitcoin:
 
